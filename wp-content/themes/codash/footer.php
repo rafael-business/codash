@@ -25,13 +25,14 @@ if ( ! defined( 'ABSPATH' ) ) {
     
     <div id="sobre" class="site-content">
         <div class="ast-container">
-            <h2>O que é a Codash?</h2>
+            slide clientes
         </div>
     </div>
 
     <div id="produtos" class="site-content">
-        <div class="ast-container">
+        <div class="ast-container block">
             <h2>Produtos à venda</h2>
+            <div><?php echo do_shortcode( '[products limit="4" columns="4" visibility="featured"]' ); ?></div>
         </div>
     </div>
 
@@ -43,7 +44,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     
     <div id="blog" class="site-content">
         <div class="ast-container">
-            <h2>Dicas & Novidades</h2>
+            <h2>Perguntas Frequentes</h2>
         </div>
     </div>
 

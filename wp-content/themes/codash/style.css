@@ -18,3 +18,7 @@ Template: astra
 .trail-items li::after {
     padding: 0 0.6em;
 }
+
+.block {
+    display: block !important;
+}
