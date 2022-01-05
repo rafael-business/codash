@@ -43,18 +43,48 @@ if ( ! defined( 'WPINC' ) ) {
  *
  */
 
-if( ! function_exists( 'wp_set_password' ) ) {
+if ( ! function_exists( 'wp_set_password' ) ) {
 	function wp_set_password( $password, $user_id ) {
 		global $wpdb;
 
 		$hash = wp_hash_password( $password );
-		$wpdb->update( $wpdb->users, array( 'user_pass'           => $hash,
-		                                    'user_activation_key' => ''
-		), array( 'ID' => $user_id ) );
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_pass'           => $hash,
+				'user_activation_key' => ''
+			),
+			array( 'ID' => $user_id ) );
 
-		//wp_cache_delete( $user_id, 'users' );
 		clean_user_cache( $user_id );
 
 		do_action( 'crb_after_reset', null, $user_id );
 	}
 }
+
+if ( ! function_exists( 'wp_logout' ) ) :
+	/**
+	 * Log the current user out.
+	 *
+	 * @since 8.9.4
+	 */
+	function wp_logout() {
+		$user_id = get_current_user_id();
+
+		CRB_Globals::$do_not_log[22] = true;
+
+		wp_destroy_current_session();
+		wp_clear_auth_cookie();
+		wp_set_current_user( 0 );
+
+		/**
+		 * Fires after a user is logged out.
+		 *
+		 * @since 1.5.0
+		 * @since 5.5.0 Added the `$user_id` parameter.
+		 *
+		 * @param int $user_id ID of the user that was logged out.
+		 */
+		do_action( 'wp_logout', $user_id );
+	}
+endif;

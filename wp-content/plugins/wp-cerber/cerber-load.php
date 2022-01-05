@@ -87,6 +87,7 @@ const CERBER_CIREC_LIMIT = 30; // Upper limit for allowed nested values during i
 const CERBER_AGGRESSIVE = 1;
 
 const CRB_USER_SET = 'cerber_user';
+const CRB_SITE_SET = 'cerber_site_meta';
 
 const CRB_CNTX_SAFE = 1;
 const CRB_CNTX_NEXUS = 2;
@@ -155,7 +156,6 @@ class WP_Cerber {
 	 * @since 6.3.3
 	 */
 	final public function isURIProhibited() {
-		global $cerber_act_status;
 
 		if ( isset( $this->uri_prohibited ) ) {
 			return $this->uri_prohibited;
@@ -178,7 +178,7 @@ class WP_Cerber {
 			     || $script == WP_SIGNUP_SCRIPT
 			     || ( $script == WP_REG_URI && ! get_option( 'users_can_register' ) ) ) {
 				if ( ! empty( $this->options['wplogin'] ) ) {
-					$cerber_act_status = 19;
+					CRB_Globals::$act_status = 19;
 					cerber_log( 50 );
 					cerber_soft_block_add( $this->remote_ip, 702, $script );
 					$this->uri_prohibited = true;
@@ -202,7 +202,7 @@ class WP_Cerber {
 					return true;
 				}
 				if ( ! cerber_geo_allowed( 'geo_xmlrpc' ) ) {
-					$cerber_act_status = 16;
+					CRB_Globals::$act_status = 16;
 					cerber_log( 71 );
 					$this->uri_prohibited = true;
 
@@ -279,16 +279,15 @@ class WP_Cerber {
 	 * @since 6.3.3
 	 */
 	final public function isProhibitedFilename( $file_name ) {
-	    global $cerber_act_status;
 
 		$prohibited = array( '.htaccess' );
 		if ( in_array( $file_name, $prohibited ) ) {
-			$cerber_act_status = CRB_STS_52;
+			CRB_Globals::$act_status = CRB_STS_52;
 			return 57;
 		}
 
 		if ( cerber_detect_exec_extension( $file_name, array('js') ) ) {
-			$cerber_act_status = CRB_STS_51;
+			CRB_Globals::$act_status = CRB_STS_51;
 			return 56;
 		}
 
@@ -410,74 +409,89 @@ class WP_Cerber {
 	 */
 	final public function reCaptchaInit(){
 
-		if ( $this->status == 4 || empty( $this->options['sitekey'] ) || empty( $this->options['secretkey'] )) return;
+		if ( $this->status == 4
+		     || empty( $this->options['sitekey'] )
+		     || empty( $this->options['secretkey'] )
+		     || ( crb_get_settings( 'recapipwhite' ) && crb_acl_is_white() ) ) {
+			return;
+		}
 
 		// Native WP forms
 		add_action( 'login_form', function () {
-			global $wp_cerber;
-			$wp_cerber->reCaptcha( 'widget', 'recaplogin' );
+			get_wp_cerber()->reCaptcha( 'widget', 'recaplogin' );
 		} );
 		add_filter( 'login_form_middle', function ( $value ) {
-			global $wp_cerber;
-			$value .= $wp_cerber->reCaptcha( 'widget', 'recaplogin', false );
+			$value .= get_wp_cerber()->reCaptcha( 'widget', 'recaplogin', false );
 			return $value;
 		});
 		add_action( 'lostpassword_form', function () {
-			global $wp_cerber;
-			$wp_cerber->reCaptcha( 'widget', 'recaplost' );
+			get_wp_cerber()->reCaptcha( 'widget', 'recaplost' );
 		} );
 		add_action( 'register_form', function () {
-			global $wp_cerber;
-			if ( !did_action( 'woocommerce_register_form_start' ) ) {
-				$wp_cerber->reCaptcha( 'widget', 'recapreg' );
+			if ( ! did_action( 'woocommerce_register_form_start' ) ) {
+				get_wp_cerber()->reCaptcha( 'widget', 'recapreg' );
 			}
 		} );
 
 		// Support for WooCommerce forms: @since 3.8
+
 		add_action( 'woocommerce_login_form', function () {
-			global $wp_cerber;
-			$wp_cerber->reCaptcha( 'widget', 'recapwoologin' );
+			get_wp_cerber()->reCaptcha( 'widget', 'recapwoologin' );
 		} );
 		add_action( 'woocommerce_lostpassword_form', function () {
-			global $wp_cerber;
-			$wp_cerber->reCaptcha( 'widget', 'recapwoolost' );
+			get_wp_cerber()->reCaptcha( 'widget', 'recapwoolost' );
 		} );
 		add_action( 'woocommerce_register_form', function () {
-			global $wp_cerber;
 			if ( ! did_action( 'woocommerce_register_form_start' ) ) {
 				return;
 			}
-			$wp_cerber->reCaptcha( 'widget', 'recapwooreg' );
+			get_wp_cerber()->reCaptcha( 'widget', 'recapwooreg' );
 		} );
 		add_filter( 'woocommerce_process_login_errors', function ( $validation_error ) {
-			global $wp_cerber;
+			$wp_cerber = get_wp_cerber();
 			//$wp_cerber->reCaptchaNow();
-			if ( ! $wp_cerber->reCaptchaValidate('woologin', true) ) {
+			if ( ! $wp_cerber->reCaptchaValidate( 'woologin', true ) ) {
 
-				return new WP_Error( 'incorrect_recaptcha', $wp_cerber->reCaptchaMsg('woocommerce-login'));
+				return new WP_Error( 'incorrect_recaptcha', $wp_cerber->reCaptchaMsg( 'woocommerce-login' ) );
 			}
-			return $validation_error;
-		});
-		add_filter( 'allow_password_reset', function ( $var ) { // Note: 'allow_password_reset' also is fired in WP itself
-			global $wp_cerber;
-			if ( isset( $_POST['wc_reset_password'] ) && did_action( 'woocommerce_init' )) {
-				//$wp_cerber->reCaptchaNow();
-				if ( ! $wp_cerber->reCaptchaValidate( 'woolost' , true) ) {
 
-					return new WP_Error( 'incorrect_recaptcha', $wp_cerber->reCaptchaMsg('woocommerce-lost'));
+			return $validation_error;
+		} );
+
+		add_filter( 'allow_password_reset', function ( $var ) {
+			static $done; // 'allow_password_reset' is fired in WooCommerce and WP (twice in different functions)
+
+			if ( ! $done && crb_is_woo_reset() ) {
+				$done = true;
+				$wp_cerber = get_wp_cerber();
+	            $login = crb_get_user_login_field();
+
+                //$wp_cerber->reCaptchaNow();
+				if ( ! $wp_cerber->reCaptchaValidate( 'woolost', true ) ) {
+
+					cerber_log( CRB_EV_PRD, $login );
+
+					return new WP_Error( 'incorrect_recaptcha', $wp_cerber->reCaptchaMsg( 'woocommerce-lost' ) );
 				}
-			}
-			return $var;
-		});
-		add_filter( 'woocommerce_process_registration_errors', function ( $validation_error ) {
-			global $wp_cerber;
-			//$wp_cerber->reCaptchaNow();
-			if ( ! $wp_cerber->reCaptchaValidate('wooreg' , true) ) {
 
-				return new WP_Error( 'incorrect_recaptcha', $wp_cerber->reCaptchaMsg('woocommerce-register'));
+	            cerber_log( CRB_EV_PRS, $login );
 			}
+
+			return $var;
+		}, PHP_INT_MAX );
+
+		add_filter( 'woocommerce_process_registration_errors', function ( $validation_error ) {
+			$wp_cerber = get_wp_cerber();
+			//$wp_cerber->reCaptchaNow();
+			if ( ! $wp_cerber->reCaptchaValidate( 'wooreg', true ) ) {
+
+				cerber_log( 54 );
+
+				return new WP_Error( 'incorrect_recaptcha', $wp_cerber->reCaptchaMsg( 'woocommerce-register' ) );
+			}
+
 			return $validation_error;
-		});
+		} );
 
 	}
 
@@ -552,22 +566,32 @@ class WP_Cerber {
 
 	/**
 	 * Validate reCAPTCHA by calling Google service
+     * Returns true on success or if validation is not needed (reCAPTCHA is not enabled for the given form)
 	 *
 	 * @param string $form  Form ID (slug)
-	 * @param boolean $force Force validate without pre-checks
+	 * @param boolean $force Force validation without pre-checks
 	 *
 	 * @return bool true on success false on failure
 	 */
-	final public function reCaptchaValidate($form = null, $force = false) {
-		if (!$force) {
+	final public function reCaptchaValidate( $form = null, $force = false ) {
+
+		if ( crb_get_settings( 'recapipwhite' ) && crb_acl_is_white() ) {
+			return true;
+		}
+
+		if ( ! $force ) {
 			if ( ! $this->recaptcha || $this->status == 4 ) {
 				return true;
 			}
 		}
 
-		if ($this->recaptcha_verified != null) return $this->recaptcha_verified;
+		if ( $this->recaptcha_verified != null ) {
+			return $this->recaptcha_verified;
+		}
 
-		if ( $form == 'comment' && $this->options['recapcomauth'] && is_user_logged_in()) return true;
+		if ( $form == 'comment' && $this->options['recapcomauth'] && is_user_logged_in() ) {
+			return true;
+		}
 
 		if ( ! $form ) {
 			$form = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : 'login';
@@ -592,43 +616,67 @@ class WP_Cerber {
 			return true; // we don't know this form
 		}
 
+        // Generic status = reCAPTCHA verification failed
+		CRB_Globals::set_bot_status( CRB_STS_532 );
+
 		if ( empty( $_POST['g-recaptcha-response'] ) ) {
-			$this->reCaptchaFailed($form);
+            // Among other issues it means invalid reCAPTCHA key or/and secret
+			$this->reCaptchaFailed( $form );
+
 			return false;
 		}
 
-		$result = $this->reCaptchaRequest($_POST['g-recaptcha-response']);
+		$result = $this->reCaptchaRequest( $_POST['g-recaptcha-response'] );
 		if ( ! $result ) {
-			cerber_log( 42 );
+			//cerber_log( 42 );
+			CRB_Globals::set_bot_status( 534 );
+
 			return false;
 		}
-
-		$result  = json_decode( $result );
-		$result = obj_to_arr_deep( $result );
 
 		if ( ! empty( $result['success'] ) ) {
 			$this->recaptcha_verified = true;
+			CRB_Globals::set_bot_status( 531 );
+
 			return true;
 		}
+
 		$this->recaptcha_verified = false;
 
 		if ( ! empty( $result['error-codes'] ) ) {
 			if ( in_array( 'invalid-input-secret', (array) $result['error-codes'] ) ) {
-				cerber_log( 41 );
+				//cerber_log( 41 );
+				CRB_Globals::set_bot_status( 533 );
 			}
 		}
 
-		$this->reCaptchaFailed($form);
+		$this->reCaptchaFailed( $form );
 
 		return false;
 	}
 
-	final function reCaptchaFailed($context = '') {
-		cerber_log( 40 );
-		if ($this->options['recaptcha-period'] && $this->options['recaptcha-number'] && $this->options['recaptcha-within']) {
-			$remain = cerber_get_remain_count($this->remote_ip , true, array( 40 ), $this->options['recaptcha-number'], $this->options['recaptcha-within']);
-			if ($remain < 1) cerber_block_add( $this->remote_ip, 705 );
+	final function reCaptchaFailed( $context = '' ) {
+
+		if ( $this->options['recaptcha-period']
+             && $this->options['recaptcha-number']
+             && $this->options['recaptcha-within'] ) {
+
+			if ( crb_acl_is_white() ) {
+				return;
+			}
+
+			$range = time() - absint( $this->options['recaptcha-within'] ) * 60;
+
+			$num = cerber_db_get_var( 'SELECT count(ip) FROM ' . CERBER_LOG_TABLE . ' WHERE ip = "' . $this->remote_ip . '" AND ac_bot = ' . CRB_STS_532 . ' AND stamp > ' . $range );
+
+			$num ++; // Current failed attempt
+
+			if ( $num >= $this->options['recaptcha-number'] ) {
+				cerber_block_add( $this->remote_ip, 705 );
+			}
+
 		}
+
 	}
 
 	/**
@@ -648,47 +696,57 @@ class WP_Cerber {
 	 *
 	 * @param string $response Google specific field from the submitted form (widget)
 	 *
-	 * @return bool|string Response of the Google service or false on failure
+	 * @return false|array Response of the Google service or false on failure
 	 */
-	final public function reCaptchaRequest($response = ''){
+	final public function reCaptchaRequest( $response = '' ) {
 
-		if (!$response) {
-			if (!empty($_POST['g-recaptcha-response'])) $response = $_POST['g-recaptcha-response'];
-			else return false;
+		if ( ! $response ) {
+			if ( ! $response = crb_array_get( $_POST, 'g-recaptcha-response' ) ) {
+				return false;
+			}
 		}
 
 		$curl = @curl_init(); // @since 4.32
-		if (!$curl) {
-			cerber_admin_notice(__( 'ERROR:', 'wp-cerber' ) .' Unable to initialize cURL');
+		if ( ! $curl ) {
+			cerber_admin_notice( __( 'ERROR:', 'wp-cerber' ) . ' Unable to initialize cURL' );
+
 			return false;
 		}
 
-		$opt = curl_setopt_array($curl, array(
-			CURLOPT_URL => GOO_RECAPTCHA_URL,
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => array( 'secret' => $this->options['secretkey'], 'response' => $response ),
+		$opt = curl_setopt_array( $curl, array(
+			CURLOPT_URL            => GOO_RECAPTCHA_URL,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => array( 'secret' => $this->options['secretkey'], 'response' => $response ),
 			CURLOPT_RETURNTRANSFER => true,
-		));
+		) );
 
-		if (!$opt) {
-			cerber_admin_notice(__( 'ERROR:', 'wp-cerber' ) .' '. curl_error($curl));
-			curl_close($curl);
+		if ( ! $opt ) {
+			cerber_admin_notice( __( 'ERROR:', 'wp-cerber' ) . ' ' . curl_error( $curl ) );
+			curl_close( $curl );
+
 			return false;
 		}
 
-		$result = @curl_exec($curl);
-		if (!$result) {
-			cerber_admin_notice(__( 'ERROR:', 'wp-cerber' ) .' '. curl_error($curl));
+		$result = @curl_exec( $curl );
+		if ( ! $result ) {
+			cerber_admin_notice( __( 'ERROR:', 'wp-cerber' ) . ' ' . curl_error( $curl ) );
 			$result = false;
 		}
-		curl_close($curl);
 
-		return $result;
+        curl_close( $curl );
+		return json_decode( $result, true );
 
 	}
 
-	final public function reCaptchaMsg($context = null){
-		return apply_filters( 'cerber_msg_recaptcha', __( 'Human verification failed. Please click the square box in the reCAPTCHA block below.', 'wp-cerber' ), $context);
+	final public function reCaptchaMsg( $context = null ) {
+		if ( crb_get_settings( 'invirecap' ) ) {
+			$msg = __( 'Human verification failed.', 'wp-cerber' );
+		}
+		else {
+			$msg = __( 'Human verification failed. Please click the square box in the reCAPTCHA block below.', 'wp-cerber' );
+		}
+
+		return apply_filters( 'cerber_msg_recaptcha', $msg, $context );
 	}
 
 	final public function setLocked() {
@@ -757,8 +815,7 @@ function cerber_init() {
 		load_plugin_textdomain( 'wp-cerber', false, 'wp-cerber/languages' );
 	}
 
-	global $wp_cerber;
-	$wp_cerber = get_wp_cerber();
+	get_wp_cerber();
 
 	cerber_beast();
 
@@ -781,25 +838,28 @@ function cerber_init() {
 		}
 	}
 
+	/*add_action( 'wp_upgrade', function () {
+		lab_get_site_meta();
+	} );*/
+
 	$done = true;
 }
 
 /**
  * Returns correct WP_Cerber object
- * Protects and sets global $wp_cerber to the proper object
  *
  * @return WP_Cerber
  * @since 6.0
  */
 function get_wp_cerber(){
-	global $wp_cerber;
+	//global $wp_cerber;
 	static $the_wp_cerber = null;
 
 	if ( ! isset( $the_wp_cerber ) ) {
 		$the_wp_cerber = new WP_Cerber();
 	}
 
-	$wp_cerber = $the_wp_cerber;
+	//$wp_cerber = $the_wp_cerber;
 
 	return $the_wp_cerber;
 }
@@ -859,23 +919,22 @@ function cerber_load_wp_constants() {
  *
  */
 function cerber_extra_vision() {
-	global $cerber_logged, $cerber_act_status;
 
 	// Multiple different malicious activities
 
-	if ( empty( $cerber_logged ) ) {
+	if ( empty( CRB_Globals::$logged ) ) {
 		return false;
 	}
 
 	$ip = cerber_get_remote_ip();
 
 	$black = crb_get_activity_set( 'black' );
-	$black_logged = array_intersect( $black, $cerber_logged );
+	$black_logged = array_intersect( $black, CRB_Globals::$logged );
 	if ( ! empty( $black_logged ) && cerber_is_ip_allowed() ) {
 		$remain = cerber_get_remain_count( $ip, true, $black ); // @since 6.7.5
 		if ( $remain < 1 ) {
 			cerber_soft_block_add( $ip, 707 );
-			$cerber_act_status = 18;
+			CRB_Globals::$act_status = 18;
 
 			return true;
 		}
@@ -884,7 +943,7 @@ function cerber_extra_vision() {
 	$remain = cerber_get_remain_count( $ip, true, array( 400 ), 10, 30 );
 	if ( $remain < 1 ) {
 		cerber_block_add( $ip, 721 );
-		$cerber_act_status = 18;
+		CRB_Globals::$act_status = 18;
 
 		return true;
 	}
@@ -1002,27 +1061,28 @@ add_filter( 'authenticate', function ( $user, $username, $password ) {
  * @return WP_User|WP_Error
  */
 function cerber_authenticate( $user, $username, $password = '' ) {
-	global $wp_cerber;
 
 	if ( $username
          && ( crb_get_settings( 'loginnowp' ) == 2 )
 	     && ! crb_acl_is_white()
 	     && CRB_Request::is_script( '/' . WP_LOGIN_SCRIPT ) ) {
 
-	    return crb_login_error( $username, CRB_EV_LFL, 50 );
+	    return crb_login_error( $username, CRB_EV_LDN, 50 );
 	}
 
 	// reCAPTCHA
 	if ( ! cerber_is_api_request()
 	     && ! get_wp_cerber()->reCaptchaValidate() ) {
 
+		cerber_log( CRB_EV_LDN, $username );
+
 		return new WP_Error( 'incorrect_recaptcha',
 			'<strong>' . __( 'ERROR:', 'wp-cerber' ) . ' </strong>' .
-			$wp_cerber->reCaptchaMsg( 'login' ) );
+			get_wp_cerber()->reCaptchaMsg( 'login' ) );
 	}
 
 	// Prohibited usernames
-	if ( $username && cerber_is_prohibited( $username ) ) {
+	if ( $username && crb_is_username_prohibited( $username ) ) {
 		$ret = crb_login_error( $username, 52 );
 		cerber_block_add( null, 704, $username );
 
@@ -1034,14 +1094,20 @@ function cerber_authenticate( $user, $username, $password = '' ) {
 
 	// Application passwords
 	$app_checked = false;
+	$app = false;
 	if ( ! ( $user instanceof WP_User )
 	     && function_exists( 'wp_authenticate_application_password' ) ) {
 		$app_checked = true;
 		$user = wp_authenticate_application_password( $user, $username, $password );
 		if ( $user instanceof WP_User ) {
-			$user = cerber_restrict_auth( $user, $password, true ); // Specifically for application passwords since they doesn't invoke the 'wp_authenticate_user' hook
+			$app = true;
 		}
 	}
+
+    // TODO: split the function into two parts:
+    // 1. before user identification - do IP-based checks
+    // 2. after user identification and password check - do user-based and role-based checks
+	$user = cerber_restrict_auth( $user, $app );
 
 	// Authentication failed or denied by cerber_restrict_auth()
 	if ( ! ( $user instanceof WP_User ) || ! $user->ID ) {
@@ -1083,7 +1149,7 @@ function cerber_authenticate( $user, $username, $password = '' ) {
 		}
 
 		if ( $deny ) {
-			cerber_log( 152, $username, 0, 25 );
+			cerber_log( 152, $username, 0, CRB_STS_25 );
 			status_header( 403 );
 
 			return new WP_Error( 'app_password_denied', 'Authentication failed' );
@@ -1094,13 +1160,13 @@ function cerber_authenticate( $user, $username, $password = '' ) {
 	if ( crb_get_settings( 'ds_4acc' ) && CRB_DS::is_ready( 1 ) ) {
 
 		if ( ! CRB_DS::is_user_valid( $user->ID ) ) {
-			return crb_login_error( $username, CRB_EV_LFL, 35 );
+			return crb_login_error( $username, CRB_EV_LDN, 35 );
 		}
 
 		if ( ! $app_checked ) {
 			$pwd = CRB_DS::get_user_pass( $user->ID );
 			if ( ! $pwd || ( $password && ! wp_check_password( $password, $pwd, $user->ID ) ) ) {
-				return crb_login_error( $username, CRB_EV_LFL, 36 );
+				return crb_login_error( $username, CRB_EV_LDN, 36 );
 			}
 		}
 	}
@@ -1114,6 +1180,8 @@ function cerber_authenticate( $user, $username, $password = '' ) {
 			cerber_log( 5, $username, $user->ID );
         }
 	}
+
+	CRB_Globals::$user_id = $user->ID;
 
 	return $user;
 }
@@ -1129,24 +1197,17 @@ function cerber_is_app_passwords( $var, $user ) {
 	return $var;
 }
 
-/*
- The hook is invoking in wp_authenticate_username_password() and  wp_authenticate_email_password()
-*/
-add_filter( 'wp_authenticate_user', 'cerber_restrict_auth', PHP_INT_MAX, 2 );
 /**
- * Stops (restrict) authentication of a user once the user identified (existing users)
- * TODO: split into two functions (local checks and cerberlab checks) and use them in cerber_authenticate() instead of using filter 'wp_authenticate_user'
+ * Stops (restricts) authentication of a user once the user identified (existing users)
  *
- * @param WP_User|WP_Error $user
- * @param string $password
+ * @param WP_User $user
  * @param bool $app If true the user is authenticated with an application password
  *
  * @return WP_User|WP_Error
  */
-function cerber_restrict_auth( $user, $password = '', $app = false ) {
-	global $cerber_act_status;
+function cerber_restrict_auth( $user, $app = false ) {
 
-	if ( is_wp_error( $user ) ) {
+	if ( ! $user instanceof WP_User ) {
 		return $user;
 	}
 
@@ -1155,26 +1216,26 @@ function cerber_restrict_auth( $user, $password = '', $app = false ) {
 
     if ( $b = crb_is_user_blocked( $user->ID ) ) {
 		$user_msg = $b['blocked_msg'];
-		$cerber_act_status = 25;
+	    CRB_Globals::$act_status = CRB_STS_29;
 		$deny = true;
 	}
     elseif ( ! $app && ( $b = crb_check_user_limits( $user->ID ) ) ) {
 		$user_msg = $b;
-		$cerber_act_status = 38;
+	    CRB_Globals::$act_status = 38;
 		$deny = true;
 	}
-    elseif ( crb_acl_is_white() ) {
+    elseif ( crb_acl_is_white() ) { // TODO: Must be checked before user identification
 		$deny = false;
 	}
-    elseif ( ! cerber_is_ip_allowed() ) {
+    elseif ( ! cerber_is_ip_allowed() ) { // TODO: Must be checked before user identification
 		$deny = true;
     }
     elseif ( ! cerber_geo_allowed( 'geo_login', $user ) ) {
-		$cerber_act_status = 16;
+	    CRB_Globals::$act_status = 16;
 		$deny = true;
 	}
     elseif ( lab_is_blocked( cerber_get_remote_ip() ) ) {
-		$cerber_act_status = 15;
+	    CRB_Globals::$act_status = 15;
 		$deny = true;
 	}
 
@@ -1202,9 +1263,9 @@ function cerber_restrict_auth( $user, $password = '', $app = false ) {
  * @return WP_Error
  */
 function crb_login_error( $username = '', $act = null, $status = null ) {
-	global $cerber_act_status;
 
-	$cerber_act_status = $status;
+	CRB_Globals::$act_status = $status;
+
 	if ( $act ) {
 		cerber_log( $act, $username );
 	}
@@ -1244,8 +1305,8 @@ add_action( 'wp_login', function ( $login, $user ) {
  * @param $user WP_User
  */
 function cerber_user_login( $login, $user ) {
-	global $wp_cerber_user_id;
-	$wp_cerber_user_id = $user->ID;
+
+	CRB_Globals::$user_id = $user->ID;
 
 	if ( ! empty( $_POST['log'] ) && ! empty( $_POST['pwd'] ) ) { // default WP login form
 		$user_login = htmlspecialchars( $_POST['log'] );
@@ -1313,7 +1374,7 @@ function cerber_login_history( $user_id, $reset = false ) {
  *
  */
 function cerber_login_failed( $user_login ) {
-	global $cerber_act_status;
+
 	static $is_processed = false;
 
 	if ( $is_processed ) {
@@ -1327,7 +1388,7 @@ function cerber_login_failed( $user_login ) {
 
 	$no_user = ! cerber_get_user( $user_login );
 
-	$act = 7; // Generic login failed (interactive), the default
+	$act = CRB_EV_LFL; // Generic login failed (interactive), the default
 
 	if ( cerber_is_api_request() ) {
 		$act = 152;
@@ -1339,9 +1400,9 @@ function cerber_login_failed( $user_login ) {
 		if ( $no_user ) {
 			$act = 51;
 		}
-        elseif ( in_array( $cerber_act_status, array( 15, 16, 25, 38 ) )
+        elseif ( in_array( CRB_Globals::$act_status, array( 15, 16, CRB_STS_25, CRB_STS_29, 38 ) )
 		         || ! cerber_is_ip_allowed( $ip ) ) {
-			$act = CRB_EV_LFL;
+			$act = CRB_EV_LDN;
 		}
 	}
 
@@ -1369,7 +1430,7 @@ function cerber_login_failed( $user_login ) {
 	     && ( $per = crb_get_settings( 'ciperiod' ) )
 	     && ! cerber_is_citadel() ) {
 		$range    = time() - $per * 60;
-		$lockouts = cerber_db_get_var( 'SELECT count(ip) FROM ' . CERBER_LOG_TABLE . ' WHERE activity = 7 AND stamp > ' . $range );
+		$lockouts = cerber_db_get_var( 'SELECT count(ip) FROM ' . CERBER_LOG_TABLE . ' WHERE activity = '.CRB_EV_LFL.' AND stamp > ' . $range );
 		if ( $lockouts >= crb_get_settings( 'cilimit' ) ) {
 			cerber_enable_citadel();
 		}
@@ -1393,11 +1454,50 @@ add_action( 'added_user_meta', function ( $meta_id, $user_id, $meta_key, $_meta_
 	}
 }, 10, 4 );
 
+add_action( 'update_user_meta', function ( $meta_id, $user_id, $meta_key, $_meta_value ) {
+
+	if ( $meta_key !== 'session_tokens'
+	     || CRB_Globals::$session_status !== null ) {
+		return;
+	}
+
+	$old_value = get_metadata_raw( 'user', $user_id, $meta_key, true );
+
+	if ( ! is_array( $old_value ) ) {
+		return;
+	}
+
+	if ( ! is_array( $_meta_value ) ) {
+		$_meta_value = array();
+	}
+
+	$new = count( $_meta_value );
+
+	if ( count( $old_value ) > $new ) {
+		if ( $new == 0 ) {
+			CRB_Globals::$session_status = 530;
+		}
+		else {
+			CRB_Globals::$session_status = 0;
+		}
+	}
+	else {
+		CRB_Globals::$session_status = null;
+	}
+
+}, 10, 4 );
+
 // do_action( "updated_{$meta_type}_meta", $meta_id, $object_id, $meta_key, $_meta_value );
 add_action( 'updated_user_meta', function ( $meta_id, $user_id, $meta_key, $_meta_value ) {
+
 	if ( $meta_key === 'session_tokens' ) {
 		crb_sessions_update_user_data( $user_id, $_meta_value );
+		if ( CRB_Globals::$session_status !== null ) {
+			cerber_log( 22, '', $user_id, CRB_Globals::$session_status );
+			CRB_Globals::$session_status = null;
+		}
 	}
+
 }, 10, 4 );
 
 // do_action( "deleted_{$meta_type}_meta", $meta_ids, $object_id, $meta_key, $_meta_value );
@@ -1406,6 +1506,8 @@ add_action( 'deleted_user_meta', function ( $meta_ids, $user_id, $meta_key, $_me
 		$query = 'DELETE FROM ' . cerber_get_db_prefix() . CERBER_USS_TABLE;
 		if ( $user_id ) {
 			$query .= ' WHERE user_id = ' . $user_id;
+			cerber_log( 22, '', $user_id, 530 ); // By admin
+			CRB_Globals::$act_status = 530;
 		}
 		cerber_db_query( $query );
 	}
@@ -1512,11 +1614,11 @@ function crb_sessions_get_num( $user_id = null ) {
 }
 
 /**
- * Terminates specified user sessions updating user meta directly in the DB
+ * Terminates specified user sessions by updating user meta directly in the DB
  *
  * @param array|string $tokens Session tokens to kill
  * @param int $user_id Users the sessions to kill belongs to
- * @param bool $admin if true, it is executing in the WP dashboard
+ * @param bool $admin If true, it is executing in the WP dashboard
  *
  * @return int
  */
@@ -1694,7 +1796,7 @@ if ( crb_get_settings( 'loginpath' ) ) {
 if ( crb_get_settings( 'nopasshint' ) && ! crb_acl_is_white() ) {
 
 	add_filter( 'lostpassword_errors', function ( $errors, $user_data ) {
-		if ( $user_data ) {
+		if ( $user_data || CRB_Globals::$reset_pwd_denied ) {
 			return $errors;
 		}
 
@@ -1760,8 +1862,9 @@ function crb_redirect_by_policy( $user, $policy ) {
 }
 
 function cerber_user_logout( $status = null ) {
-	global $cerber_act_status, $current_user, $userdata, $user_ID;
-	$cerber_act_status = ( ! $status ) ? 26 : absint( $status );
+	global $current_user, $userdata, $user_ID;
+
+    CRB_Globals::$act_status = ( ! $status ) ? 26 : absint( $status );
 
 	if ( $current_user instanceof WP_User ) {
 		$uid = $current_user->ID;
@@ -1782,46 +1885,43 @@ function cerber_user_logout( $status = null ) {
 // Registration -----------------------------------------------------------------------
 
 function cerber_is_registration_prohibited( $user_login, $user_email = '' ) {
-	global $wp_cerber, $cerber_act_status;
 
 	$code = null;
 	$msg = '';
 	$ret_msg = '';
+	$wp_cerber = get_wp_cerber();
 
 	if ( crb_get_settings( 'regwhite' )
 	     && ! crb_acl_is_white()
 	     && lab_lab() ) {
-		$cerber_act_status = 37;
-		cerber_log( 54 );
+		cerber_log( 54, '', 0, 37 );
 		$code = 'ip_denied';
 		if ( ! $ret_msg = crb_get_settings( 'regwhite_msg' ) ) {
 			$msg = __( 'You are not allowed to register.', 'wp-cerber' );
 		}
 	}
     elseif ( crb_is_reg_limit_reached() ) {
-		$cerber_act_status = 17;
-		cerber_log( 54 );
+	    cerber_log( 54, '', 0, 17 );
 		$code = 'ip_denied';
 		$msg = apply_filters( 'cerber_msg_denied', __( 'You are not allowed to register.', 'wp-cerber' ), 'register' );
 	}
     elseif ( cerber_is_bot( 'botsreg' ) ) {
-		cerber_log( 54 ); // TODO should be separate code to detect bot activity?
+		cerber_log( 54 );
 		$code = 'bot_detected';
 		$msg = apply_filters( 'cerber_msg_denied', __( 'You are not allowed to register.', 'wp-cerber' ), 'register' );
 	}
     elseif ( ! $wp_cerber->reCaptchaValidate() ) {
+	    cerber_log( 54, '', 0 , CRB_STS_532 );
 		$code = 'incorrect_recaptcha';
 		$msg = $wp_cerber->reCaptchaMsg( 'register' );
 	}
-    elseif ( cerber_is_prohibited( $user_login ) ) {
-		$cerber_act_status = 30;
-		cerber_log( 54 );
+    elseif ( crb_is_username_prohibited( $user_login ) ) {
+		cerber_log( 54, '', 0, CRB_STS_30 );
 		$code = 'prohibited_login';
 		$msg = apply_filters( 'cerber_msg_prohibited', __( 'Username is not allowed. Please choose another one.', 'wp-cerber' ), 'register' );
 	}
     elseif ( ! cerber_is_email_permited( $user_email ) ) {
-		$cerber_act_status = 31;
-		cerber_log( 54 );
+		cerber_log( 54, '', 0, 31 );
 		$code = 'prohibited_email';
 		$msg = apply_filters( 'cerber_msg_prohibited_email', __( 'Email address is not permitted.', 'wp-cerber' ) . ' ' . __( 'Please choose another one.', 'wp-cerber' ), 'register' );
 	}
@@ -1831,8 +1931,7 @@ function cerber_is_registration_prohibited( $user_login, $user_email = '' ) {
 		$msg = apply_filters( 'cerber_msg_denied', __( 'You are not allowed to register.', 'wp-cerber' ), 'register' );
 	}
     elseif ( ! cerber_geo_allowed( 'geo_register' ) ) {
-		$cerber_act_status = 16; // TODO: refactor cerber_log, include this status as a second parameter
-		cerber_log( 54 );
+		cerber_log( 54, '', 0, 16 );
 		$code = 'country_denied';
 		$msg = apply_filters( 'cerber_msg_denied', __( 'You are not allowed to register.', 'wp-cerber' ), 'register' );
 	}
@@ -1947,16 +2046,26 @@ add_filter( 'registration_errors', function ( $errors, $sanitized_user_login, $u
  *
  * @since 8.6.3.3
  */
-add_filter( 'wp_pre_insert_user_data', function ( $data, $update ) {
-	if ( $update || is_admin() ) {
+add_filter( 'wp_pre_insert_user_data', function ( $data, $update, $user_id ) {
+	/*if ( $update || is_admin() ) {
 		return $data;
+	}*/
+
+	if ( ! $update && ! is_admin() ) {
+
+		$user_login = crb_array_get( $data, 'user_login' );
+		$user_email = crb_array_get( $data, 'user_email' );
+
+		if ( cerber_is_registration_prohibited( $user_login, $user_email ) ) {
+			return null;
+		}
 	}
 
-	$user_login = crb_array_get( $data, 'user_login' );
-	$user_email = crb_array_get( $data, 'user_email' );
-
-	if ( cerber_is_registration_prohibited( $user_login, $user_email ) ) {
-		return null;
+	if ( $update ) {
+		$old_user_data = get_userdata( $user_id );
+		if ( $data['user_pass'] != $old_user_data->user_pass ) {
+			crb_pass_reset( $old_user_data );
+		}
 	}
 
 	return $data;
@@ -1996,37 +2105,6 @@ add_filter( 'option_users_can_register', function ( $value ) {
 
 	return $value;
 }, PHP_INT_MAX );
-
-// Lost password form --------------------------------------------------------------------
-
-/**
- * Validate reCAPTCHA for the WordPress lost password form
- */
-add_action( 'login_form_' . 'lostpassword', 'cerber_lost_captcha' );
-function cerber_lost_captcha() {
-	global $wp_cerber, $cerber_lost;
-	if ( ! $wp_cerber->reCaptchaValidate() ) {
-		$_POST['user_login'] = null; // workaround due to lack of any way to control lost password form
-		$cerber_lost = '<strong>' . __( 'ERROR:', 'wp-cerber' ) . ' </strong>' . $wp_cerber->reCaptchaMsg('lostpassword');
-	}
-}
-/**
- * Display message on the WordPress lost password form screen
- */
-add_action( 'lostpassword_form', 'cerber_lost_show_msg' );
-function cerber_lost_show_msg() {
-	global $cerber_lost;
-	if ( ! $cerber_lost ) {
-		return;
-	}
-	?>
-	<script type="text/javascript">
-        //document.getElementById('login_error').style.visibility = "hidden";
-        document.getElementById('login_error').innerHTML = "<?php echo $cerber_lost; ?>";
-	</script>
-	<?php
-}
-
 
 // Comments (commenting) section ----------------------------------------------------------
 
@@ -2083,7 +2161,6 @@ add_filter( 'pre_comment_approved', function ( $approved, $commentdata ) {
  *
  */
 add_action( 'pre_comment_on_post', function ( $comment_post_ID ) {
-	global $cerber_act_status;
 
 	$deny = false;
 
@@ -2091,7 +2168,7 @@ add_action( 'pre_comment_on_post', function ( $comment_post_ID ) {
 		$deny = true;
 	}
 	elseif ( ! cerber_geo_allowed( 'geo_comment' ) ) {
-		$cerber_act_status = 16;
+		CRB_Globals::$act_status = 16;
 		cerber_log(19);
 		$deny = true;
 	}
@@ -2115,14 +2192,13 @@ add_action( 'pre_comment_on_post', function ( $comment_post_ID ) {
  *
  */
 add_filter( 'rest_allow_anonymous_comments', function ( $allowed, $request ) {
-	global $cerber_act_status;
 
 	if ( ! cerber_is_ip_allowed() ) {
 		$allowed = false;
 	}
 	if ( ! cerber_geo_allowed( 'geo_comment' ) ) {
 		cerber_log(19);
-		$cerber_act_status = 16;
+		CRB_Globals::$act_status = 16;
 		$allowed = false;
 	}
 	elseif ( lab_is_blocked( cerber_get_remote_ip() ) ) {
@@ -2138,7 +2214,6 @@ add_filter( 'rest_allow_anonymous_comments', function ( $allowed, $request ) {
  * @return bool
  */
 function cerber_is_comment_allowed(){
-	global $wp_cerber;
 
 	if ( is_admin() ) {
 		return true;
@@ -2154,7 +2229,7 @@ function cerber_is_comment_allowed(){
 	    $deny = 16;
 		$remain = cerber_get_remain_count( null, true, array( 16 ), 3, 60 );
 	}
-	elseif ( ! $wp_cerber->reCaptchaValidate( 'comment' , true ) ) {
+	elseif ( ! get_wp_cerber()->reCaptchaValidate( 'comment' , true ) ) {
 		$deny = 16;
 	}
 	elseif ( lab_is_blocked( cerber_get_remote_ip() ) ) {
@@ -2182,7 +2257,7 @@ function cerber_is_comment_allowed(){
  *
  */
 add_filter( 'comment_form_submit_field', function ( $value ) {
-	global $wp_cerber, $post;
+	global $post;
 
 	if ( cerber_get_cookie( 'cerber_post_id' ) == $post->ID ) {
 		//echo '<div id="cerber-recaptcha-msg">' . __( 'ERROR:', 'wp-cerber' ) . ' ' . $wp_cerber->reCaptchaMsg( 'comment' ) . '</div>';
@@ -2191,9 +2266,8 @@ add_filter( 'comment_form_submit_field', function ( $value ) {
 		echo '<script type="text/javascript">document.cookie = "' . $p . 'cerber_post_id=0;path=/";</script>';
 	}
 
-	$au = $wp_cerber->getSettings( 'recapcomauth' );
-	if ( ! $au || ( $au && ! is_user_logged_in() ) ) {
-		$wp_cerber->reCaptcha( 'widget', 'recapcom' );
+	if ( ! crb_get_settings( 'recapcomauth' ) || ! is_user_logged_in() ) {
+		get_wp_cerber()->reCaptcha( 'widget', 'recapcom' );
 	}
 
 	if ( cerber_is_custom_comment() ) {
@@ -2298,9 +2372,10 @@ function cerber_login_redirect( $location, $status ) {
 	return $location;
 }
 
-// Access control ========================================================================================
-
 add_action( 'init', function () {
+
+	cerber_cookie_bad_proc();
+
 	if ( crb_get_settings( 'adminphp' ) ) {
 		if ( defined( 'CONCATENATE_SCRIPTS' ) ) {
 			cerber_add_issue( 'conscripts', 'The PHP constant CONCATENATE_SCRIPTS is already defined somewhere else', 'adminphp' );
@@ -2338,13 +2413,13 @@ if ( ( defined( 'CERBER_OLD_LP' ) && CERBER_OLD_LP )
  *
  */
 function cerber_access_control() {
-	global $wp_cerber, $cerber_act_status, $cerber_req_status;
 
 	if ( crb_acl_is_white() ) {
 		return;
 	}
 
 	$wp_cerber = get_wp_cerber();
+
 	if ( $wp_cerber->isURIProhibited() ) {
 		cerber_404_page();
 	}
@@ -2364,11 +2439,11 @@ function cerber_access_control() {
 
 		if ( $rest_allowed && ! cerber_geo_allowed( 'geo_restapi' ) ) {
 			$rest_allowed  = false;
-			$cerber_act_status = 16;
+			CRB_Globals::$act_status = 16;
 		}
 
 		if ( ! $rest_allowed ) {
-			$cerber_req_status = 0;
+			CRB_Globals::$req_status = 0;
 			cerber_block_rest_api();
 		}
 	}
@@ -2429,9 +2504,9 @@ function cerber_auth_access() {
  *
  */
 function cerber_post_control() {
-	global $cerber_act_status;
 
-	if ( ! cerber_is_http_post() || crb_acl_is_white() ) {
+	if ( ! cerber_is_http_post()
+	     || ( crb_get_settings( 'botsipwhite' ) && crb_acl_is_white() ) ) {
 		return;
 	}
 
@@ -2457,14 +2532,14 @@ function cerber_post_control() {
 		$deny = true;
 		cerber_log( 17 );
 	}
-	elseif ( ! cerber_geo_allowed( 'geo_submit' ) ) {
-		$deny          = true;
-		$cerber_act_status = 16; // TODO: refactor cerber_log, include this status as a second parameter
+    elseif ( ! cerber_geo_allowed( 'geo_submit' ) ) {
+		$deny = true;
+		CRB_Globals::$act_status = 16;
 		cerber_log( 18 );
 	}
-	elseif ( lab_is_blocked( null, true ) ) {
-		$deny          = true;
-		$cerber_act_status = 18;
+    elseif ( lab_is_blocked( null, true ) ) {
+		$deny = true;
+	    CRB_Globals::$act_status = 18;
 		cerber_log( 18 );
 	}
 
@@ -2665,11 +2740,7 @@ function cerber_block_rest_api() {
 	// OLD WP
 	add_filter( 'json_enabled', '__return_false' );
 	add_filter( 'json_jsonp_enabled', '__return_false' );
-	// WP 4.4, deprecated since 4.7
-	if ( version_compare( cerber_get_wp_version(), '4.7', '<' ) ) {
-		add_filter( 'rest_enabled', '__return_false', 9999 );
-	}
-	// WP 4.7
+	// @since WP 4.7
 	add_filter( 'rest_jsonp_enabled', '__return_false' );
 	// Links
 	remove_action( 'wp_head', 'rest_output_link_wp_head', 10 );
@@ -2773,17 +2844,17 @@ function cerber_can_msg() {
 
 
 // Cookies ---------------------------------------------------------------------------------
-/*
-	Mark user with Cerber Groove
-	@since 1.3
-*/
+
 add_action( 'auth_cookie_valid', 'cerber_cookie_one', 10, 2 );
 function cerber_cookie_one( $cookie_elements = null, $user = null ) {
 	if ( ! $user ) {
 		$user = wp_get_current_user();
 	}
+
+	CRB_Globals::$user_id = $user->ID;
+
 	// Mark user with Cerber Groove
-    // TODO: remove filter, add IP address and user agent
+	// TODO: remove filter, add IP address and user agent
 	$expire = time() + apply_filters( 'auth_cookie_expiration', 14 * 24 * 3600, $user->ID, true ) + ( 24 * 3600 );
 	cerber_set_groove( $expire );
 }
@@ -2798,22 +2869,39 @@ function cerber_cookie2( $logged_in_cookie, $expire, $expiration, $user_id, $log
 }
 
 /*
-	Track BAD cookies with non-existing users or bad passwords (hash)
+	Monitoring BAD auth cookies
 */
 add_action( 'auth_cookie_bad_username', 'cerber_cookie_bad' );
 add_action( 'auth_cookie_bad_hash', 'cerber_cookie_bad' );
+add_action( 'auth_cookie_bad_session_token', 'cerber_cookie_bad' );
 function cerber_cookie_bad( $cookie_elements ) {
-	global $cerber_act_status;
+	global $cerber_auth_cookie_bad;
+
+	$cerber_auth_cookie_bad = array( 1, $cookie_elements['username'] );
+}
+
+/**
+ * Bad (invalid) auth cookie handler
+ *
+ * @since 8.9.4
+ *
+ */
+function cerber_cookie_bad_proc() {
+	global $cerber_auth_cookie_bad;
+
+	if ( empty( $cerber_auth_cookie_bad ) ) {
+		return;
+	}
 
 	if ( ! headers_sent() ) {
 		wp_clear_auth_cookie();
-		$cerber_act_status = 40;
+		CRB_Globals::$act_status = 40;
 	}
 	else {
-		$cerber_act_status = 39;
+		CRB_Globals::$act_status = 39;
 	}
 
-	cerber_login_failed( $cookie_elements['username'] );
+	cerber_login_failed( $cerber_auth_cookie_bad[1] );
 }
 
 /**
@@ -2824,6 +2912,10 @@ function cerber_cookie_bad( $cookie_elements ) {
  * @return bool true if enabled
  */
 function cerber_antibot_enabled( $location ) {
+
+	if ( crb_get_settings( 'botsipwhite' ) && crb_acl_is_white() ) {
+		return false;
+	}
 
 	if ( crb_get_settings( 'botsnoauth' ) && is_user_logged_in() ) {
 		return false;
@@ -2970,7 +3062,7 @@ function cerber_antibot_gene( $recreate = false ) {
  * @return bool
  */
 function cerber_is_bot( $location = '' ) {
-	global $cerber_act_status, $cerber_req_status;
+
 	static $ret = null;
 
 	$remote_ip = cerber_get_remote_ip();
@@ -3025,7 +3117,7 @@ function cerber_is_bot( $location = '' ) {
 			if ( $item[0] == '{' && substr( $item, - 1 ) == '}' ) {
 				$pattern = '/' . substr( $item, 1, - 1 ) . '/i';
 				if ( @preg_match( $pattern, $uri ) ) {
-					$cerber_req_status = 502;
+					CRB_Globals::$req_status = 502;
 					$ret = false;
 
 					return $ret;
@@ -3034,7 +3126,7 @@ function cerber_is_bot( $location = '' ) {
 			else {
 				$cmp = ( substr( $item, - 1 ) == '/' ) ? $uri_slash : $uri; // @since 8.8 Someone may specify trailing slash
 				if ( false !== strpos( $cmp, $item ) ) {
-					$cerber_req_status = 502;
+					CRB_Globals::$req_status = 502;
 					$ret = false;
 
 					return $ret;
@@ -3070,7 +3162,7 @@ function cerber_is_bot( $location = '' ) {
 		}
 
 		if ( $ret ) {
-			$cerber_act_status = 11;
+			CRB_Globals::set_bot_status( CRB_STS_11 );
 			lab_save_push( $remote_ip, 333 );
 		}
 	}
@@ -3196,32 +3288,142 @@ add_filter( 'auth_cookie_expiration', function ( $expire, $user_id ) {
 
 // add_action( 'wp_logout', function(){});
 add_action( 'clear_auth_cookie', function () {
-	global $wp_cerber_user_id;
+
 	$uid = get_current_user_id();
 	if ( $uid ) {
-		$wp_cerber_user_id = $uid;
-		cerber_log( 6, '', $uid );
+		CRB_Globals::$user_id = $uid;
+		cerber_log( 6, '', $uid, CRB_Globals::$act_status );
 		CRB_2FA::delete_2fa( $uid );
 	}
+
 	cerber_set_cookie( 'cerber_nexus_id', 0, time(), '/' );
 } );
 
-// add_action( 'lostpassword_post', 'cerber_password_post' );
-add_action( 'retrieve_password', function ( $user_login ) {
-	cerber_log( 21, $user_login );
-} );
+// Lost password form --------------------------------------------------------------------
+
+// This hook is available since WP 5.5
+add_filter( 'lostpassword_errors', 'crb_lost_pwd_errors', PHP_INT_MAX, 2 );
+/**
+ * Check if password reset is allowed for a given user (since WP 5.5)
+ *
+ * @param $errors WP_Error
+ * @param $user_data WP_User|false
+ *
+ * @return WP_Error
+ *
+ * @since 8.9.4
+ */
+function crb_lost_pwd_errors( $errors, $user_data ) {
+	if ( $user_data ) {
+		if ( ! $errors instanceof WP_Error ) {
+			$errors = new WP_Error;
+		}
+
+		if ( ( $b = crb_is_user_blocked( $user_data->ID ) )
+		     || crb_is_username_prohibited( $user_data->user_login ) ) {
+			$errors->add( 'cerber_pwd_reset_not_allowed', __( 'Sorry, password reset is not allowed for this user.', 'wp-cerber' ) );
+
+			$status = ( $b ) ? CRB_STS_29 : CRB_STS_30;
+
+			cerber_log( CRB_EV_PRD, crb_get_user_login_field( $user_data->user_login ), 0, $status );
+			CRB_Globals::$reset_pwd_denied = true;
+		}
+        else {
+	        cerber_log( CRB_EV_PRS, crb_get_user_login_field( $user_data->user_login ) );
+        }
+	}
+
+	return $errors;
+}
+
+/**
+ * @return bool True if the WooCommerce reset form has been submitted
+ */
+function crb_is_woo_reset() {
+	return ( isset( $_POST['wc_reset_password'] )
+	         && class_exists( 'WooCommerce' ) );
+}
+
+/**
+ * Returns login entered by a user on the standard WordPress and WooCommerce login forms
+ *
+ * @param string $default Default value
+ *
+ * @return string
+ */
+function crb_get_user_login_field( $default = '' ) {
+	if ( ! empty( $_POST['user_login'] ) ) {
+		return sanitize_user( stripslashes( $_POST['user_login'] ) );
+	}
+
+	return $default;
+}
+
+/**
+ * Validate reCAPTCHA for the WordPress lost password form
+ */
+add_action( 'login_form_' . 'lostpassword', 'cerber_lost_pwd_captcha' );
+function cerber_lost_pwd_captcha() {
+	$wp_cerber = get_wp_cerber();
+	if ( ! $wp_cerber->reCaptchaValidate() ) {
+
+		// Abort password reset
+		$_POST['user_login'] = null;
+
+		cerber_log( CRB_EV_PRD, crb_get_user_login_field() );
+		CRB_Globals::$reset_pwd_denied = true;
+		CRB_Globals::$reset_pwd_msg = '<strong>' . __( 'ERROR:', 'wp-cerber' ) . ' </strong>' . $wp_cerber->reCaptchaMsg( 'lostpassword' );
+	}
+}
+
+/**
+ * Display message on the WordPress lost password form screen
+ */
+add_action( 'lostpassword_form', 'cerber_lost_show_msg' );
+function cerber_lost_show_msg() {
+	if ( ! CRB_Globals::$reset_pwd_msg ) {
+		return;
+	}
+	?>
+    <script type="text/javascript">
+        //document.getElementById('login_error').style.visibility = "hidden";
+        document.getElementById('login_error').innerHTML = "<?php echo CRB_Globals::$reset_pwd_msg; ?>";
+    </script>
+	<?php
+}
+
+// For WP < 5.5
+add_action( 'lostpassword_post', function ( &$errors, $user_data ) {
+	if ( crb_wp_version_compare( '5.5' ) // Not relevant, see new 'lostpassword_errors'
+	     || CRB_Globals::$reset_pwd_denied
+	     || crb_is_woo_reset() ) {
+		return;
+	}
+
+	$login = crb_get_user_login_field( $user_data->user_login );
+
+	cerber_log( CRB_EV_PRS, $login );
+
+}, 0, 2 );
 
 add_action( 'password_reset', 'crb_pass_reset' );
 add_action( 'crb_after_reset', 'crb_pass_reset', 10, 2);
 
 function crb_pass_reset( $user, $user_id = null) {
+
 	if ( ! $user && $user_id ) {
 		$user = get_user_by( 'id', $user_id );
 	}
+
 	if ( ! $user ) {
 		return;
 	}
+
 	cerber_log( 20, $user->user_login, $user->ID );
+
+	// Do not log 'clear_auth_cookie' event (logout/login sequence) that occurs after password reset
+	CRB_Globals::$do_not_log[5] = true;
+	CRB_Globals::$do_not_log[6] = true;
 }
 
 // Fires in wp_insert_user()
@@ -3312,7 +3514,6 @@ function cerber_soft_block_add( $ip, $reason_id, $details = '', $duration = null
  * @return bool|false|int
  */
 function cerber_block_add( $ip_address = '', $reason_id = 1, $details = '', $duration = null ) {
-	global $cerber_blocked;
 
 	if ( cerber_is_cloud_request() ) {
 		return false;
@@ -3374,7 +3575,7 @@ function cerber_block_add( $ip_address = '', $reason_id = 1, $details = '', $dur
 
 	if ( $result ) {
 		$result = true;
-		$cerber_blocked = $reason_id;
+		CRB_Globals::$blocked = $reason_id;
 		cerber_log( $activity, null, null, 0, $ip_address );
 		$wp_cerber->setLocked();
 		crb_event_handler( 'ip_event', array(
@@ -3519,7 +3720,7 @@ function cerber_calc_duration( $ip ) {
  *
  * @return int Allowed attempts for present moment
  */
-function cerber_get_remain_count( $ip = '', $check_acl = true, $activity = array( 7, 152, 51, 52 ), $allowed = null, $period = null ) {
+function cerber_get_remain_count( $ip = '', $check_acl = true, $activity = array( CRB_EV_LFL, 152, 51, 52 ), $allowed = null, $period = null ) {
 
 	if ( ! $ip ) {
 		$ip = cerber_get_remote_ip();
@@ -3567,7 +3768,6 @@ function cerber_get_remain_count( $ip = '', $check_acl = true, $activity = array
  * @return bool
  */
 function cerber_is_ip_allowed( $ip = '', $context = null ) {
-    global $cerber_act_status;
 
 	if ( ! $ip ) {
 		$ip = cerber_get_remote_ip();
@@ -3581,24 +3781,24 @@ function cerber_is_ip_allowed( $ip = '', $context = null ) {
 		return true;
 	}
 	if ( $tag == 'B' ) {
-		$cerber_act_status = 14;
+		CRB_Globals::$act_status = 14;
 		return false;
 	}
 
 	if ( $b = cerber_get_block( $ip ) ) {
 		if ( ! in_array( $b->reason_id, crb_context_get_allowed( $context ) ) ) {
-			$cerber_act_status = 13;
+			CRB_Globals::$act_status = 13;
 			return false;
 		}
 	}
 
     if ( $context != CRB_CNTX_NEXUS && cerber_is_citadel() ) {
-	    $cerber_act_status = 19;
+	    CRB_Globals::$act_status = 19;
 		return false;
 	}
 
 	if ( lab_is_blocked( $ip, false ) ) {
-		$cerber_act_status = 15;
+		CRB_Globals::$act_status = 15;
 		return false;
 	}
 
@@ -3627,7 +3827,7 @@ function crb_context_get_allowed( $context_id ) {
  *
  * @return bool true if username is prohibited
  */
-function cerber_is_prohibited( $username ) {
+function crb_is_username_prohibited( $username ) {
 	if ( ! $username ) {
 		return false;
 	}
@@ -3653,10 +3853,9 @@ function cerber_is_prohibited( $username ) {
 
 // TODO: Merge with $wp_cerber->getStatus();
 function cerber_get_status( $ip, $activity = null ) {
-	global $cerber_act_status;
 
-	if ( ! empty( $cerber_act_status ) ) {
-		return absint( $cerber_act_status );
+	if ( ! empty( CRB_Globals::$act_status ) ) {
+		return absint( CRB_Globals::$act_status );
 	}
 
 	if ( cerber_block_check( $ip ) ) {
@@ -3665,7 +3864,7 @@ function cerber_get_status( $ip, $activity = null ) {
 
 	if ( $tag = cerber_acl_check( $ip ) ) {
 		if ( $tag == 'W' ) {
-			if ( in_array( $activity, array( 1, 2, 5, 20, 21 ) ) ) {
+			if ( in_array( $activity, array( 1, 2, 5, 20, CRB_EV_PRS ) ) ) {
 				return 500;
 			}
 			if ( in_array( $activity, array( 72, 73, 75, 76 ) ) ) {
@@ -4331,11 +4530,13 @@ function crb_summ_hex( $hex1, $hex2) {
 	Check for given IP address or subnet belong to this session.
 */
 function cerber_is_myip( $ip ) {
-	global $wp_cerber;
+
 	if ( ! is_string( $ip ) ) {
 		return false;
 	}
+
 	$remote_ip = cerber_get_remote_ip();
+
 	if ( $ip == $remote_ip ) {
 		return true;
 	}
@@ -4582,11 +4783,11 @@ function cerber_send_email( $type = '', $msg = '', $ip = '' ) {
 
 	switch ( $type ) {
 		case 'citadel':
-			$max = cerber_db_get_var( 'SELECT MAX(stamp) FROM ' . CERBER_LOG_TABLE . ' WHERE  activity = 7' );
+			$max = cerber_db_get_var( 'SELECT MAX(stamp) FROM ' . CERBER_LOG_TABLE . ' WHERE  activity = ' . CRB_EV_LFL );
 			if ( $max ) {
 				$last_date = cerber_date( $max, false );
 				//$last      = $wpdb->get_row( 'SELECT * FROM ' . CERBER_LOG_TABLE . ' WHERE stamp = ' . $max . ' AND activity = 7' );
-				$last = cerber_db_get_row( 'SELECT * FROM ' . CERBER_LOG_TABLE . ' WHERE stamp = ' . $max . ' AND activity = 7', MYSQL_FETCH_OBJECT );
+				$last = cerber_db_get_row( 'SELECT * FROM ' . CERBER_LOG_TABLE . ' WHERE stamp = ' . $max . ' AND activity = ' . CRB_EV_LFL, MYSQL_FETCH_OBJECT );
 			}
 
 			if ( ! $last ) { // workaround for the empty log table
@@ -5266,25 +5467,34 @@ function cerber_bg_task_delete( $task_id ) {
  * @param int $status
  * @param null $ip IP Address
  *
- * @return false|int
+ * @return bool
  * @since 3.0
  */
 function cerber_log( $activity, $login = '', $user_id = 0, $status = 0, $ip = null ) {
-	global $user_ID, $cerber_logged, $cerber_blocked;
+	global $user_ID;
 	static $logged = array();
 
 	$wp_cerber = get_wp_cerber();
 
 	$activity = absint( $activity );
 
-	if ( isset( $logged[ $activity ] )
+	if ( empty( $user_id ) ) {
+		$user_id = ( $user_ID ) ?: 0;
+	}
+
+	$user_id = absint( $user_id );
+
+	$key = $activity . '-' . $user_id;
+
+	if ( ( isset( $logged[ $key ] )
+	       || isset( CRB_Globals::$do_not_log[ $activity ] ) )
 	     && ! defined( 'CRB_ALLOW_MULTIPLE' ) ) {
 		return false;
 	}
 
-	$logged[ $activity ] = true;
+	$logged[ $key ] = true;
 
-	$cerber_logged[ $activity ] = $activity;
+	CRB_Globals::$logged[ $activity ] = $activity;
 
 	//$wp_cerber->setProcessed();
 
@@ -5302,12 +5512,6 @@ function cerber_log( $activity, $login = '', $user_id = 0, $status = 0, $ip = nu
 		$ip_long = 1;
 	}
 
-	if ( empty( $user_id ) ) {
-		$user_id = ( $user_ID ) ? $user_ID : 0;
-	}
-
-	$user_id = absint( $user_id );
-
 	$stamp = microtime( true );
 
 	$pos  = strpos( $_SERVER['REQUEST_URI'], '?' );
@@ -5318,23 +5522,32 @@ function cerber_log( $activity, $login = '', $user_id = 0, $status = 0, $ip = nu
 		if ( $activity != 10 && $activity != 11 ) {
 			$status = cerber_get_status( $ip, $activity );
 		}
-        elseif ( $cerber_blocked ) {
-			$status = $cerber_blocked;
+        elseif ( CRB_Globals::$blocked ) {
+			$status = CRB_Globals::$blocked;
 		}
 	}
 
-	$details = absint( $status ) . '|0|0|0|' . $url;
+	$ac_bot = absint( CRB_Globals::$bot_status );
+	$ac_by_user = absint( CRB_Globals::$user_id );
+
+	$status = absint( $status );
+
+	$details = $status . '|0|0|0|' . $url;
 
 	$country = lab_get_country( $ip );
 
 	$login   = cerber_real_escape( $login );
 	$details = cerber_real_escape( $details );
-	$ret     = cerber_db_query( 'INSERT INTO ' . CERBER_LOG_TABLE . ' (ip, ip_long, user_login, user_id, stamp, activity, session_id, country, details) 
-	    VALUES ("' . $ip . '",' . $ip_long . ',"' . $login . '",' . $user_id . ',"' . $stamp . '",' . $activity . ',"' . $wp_cerber->getRequestID() . '","' . $country . '","' . $details . '")' );
+	$ret     = cerber_db_query( 'INSERT INTO ' . CERBER_LOG_TABLE . ' (ip, ip_long, user_login, user_id, stamp, activity, session_id, country, details, ac_status, ac_bot, ac_by_user) 
+	    VALUES ("' . $ip . '",' . $ip_long . ',"' . $login . '",' . $user_id . ',"' . $stamp . '",' . $activity . ',"' . $wp_cerber->getRequestID() . '","' . $country . '","' . $details . '", ' . $status . ', ' . $ac_bot . ',' . $ac_by_user . ')' );
 
 	if ( ! $ret ) {
 		cerber_watchdog();
+		$ret = false;
 	}
+    else {
+	    $ret = true;
+    }
 
 	// Subscriptions - notifications for admin ---------------------------------------------------
 
@@ -5441,7 +5654,7 @@ function cerber_log( $activity, $login = '', $user_id = 0, $status = 0, $ip = nu
 		}
 	}
 
-	if ( in_array( $activity, array( 16, 17, 40, 50, CRB_EV_LFL, 55, 56, 71 ) ) ) {
+	if ( in_array( $activity, array( 16, 17, 40, 50, CRB_EV_LDN, 55, 56, 71 ) ) ) {
 		lab_save_push( $ip, $activity );
 	}
 
@@ -5667,7 +5880,7 @@ register_activation_hook( cerber_plugin_file(), function () {
 		cerber_stop_activating( '<h3>' . sprintf( __( 'WP Cerber requires PHP %s or higher. You are running %s.', 'wp-cerber' ), CERBER_REQ_PHP, phpversion() ) . '</h3>' );
 	}
 
-	if ( version_compare( CERBER_REQ_WP, cerber_get_wp_version(), '>' ) ) {
+	if ( ! crb_wp_version_compare( CERBER_REQ_WP ) ) {
 		cerber_stop_activating( '<h3>' . sprintf( __( 'WP Cerber requires WordPress %s or higher. You are running %s.', 'wp-cerber' ), CERBER_REQ_WP, cerber_get_wp_version() ) . '</h3>' );
 	}
 
@@ -5794,45 +6007,51 @@ function cerber_finito() {
  *
  */
 function cerber_upgrade_all( $force = false ) {
-	global $cerber_doing_upgrade;
+
 	$ver = get_site_option( '_cerber_up' );
-	if ( $force || ! $ver || $ver['v'] != CERBER_VER ) {
 
-	    $d = @ini_get( 'display_errors');
-		@ini_set( 'display_errors', 0 );
-
-		@ignore_user_abort( true );
-
-		crb_raise_limits();
-
-		$cerber_doing_upgrade = true;
-		@define( 'CRB_DOING_UPGRADE', 1 );
-
-		crb_clear_admin_msg();
-		cerber_create_db();
-		cerber_upgrade_db();
-		cerber_acl_fixer();
-		cerber_antibot_gene( true );
-		cerber_upgrade_settings();
-		cerber_htaccess_sync( 'main' );
-
-		cerber_bg_task_add( 'cerber_upgrade_deferred' );
-
-		update_site_option( '_cerber_up', array( 'v' => CERBER_VER, 't' => time() ) );
-
-		cerber_push_the_news();
-		cerber_delete_expired_set( true );
-		CRB_Cache::reset();
-		if ( wp_next_scheduled( 'cerber_hourly' ) ) {
-			wp_clear_scheduled_hook( 'cerber_hourly' ); // not in use since v. 5.8.
-		}
-
-		lab_get_key( true );
-		$cerber_doing_upgrade = false;
-		delete_site_transient( 'update_plugins' );
-
-		@ini_set( 'display_errors', $d );
+	if ( ! $force && crb_array_get( $ver, 'v' ) == CERBER_VER ) {
+		return;
 	}
+
+	$d = @ini_get( 'display_errors' );
+	@ini_set( 'display_errors', 0 );
+
+	@ignore_user_abort( true );
+
+	crb_raise_limits();
+
+	CRB_Globals::$doing_upgrade = true;
+	@define( 'CRB_DOING_UPGRADE', 1 );
+
+	crb_clear_admin_msg();
+	cerber_create_db();
+
+	if ( $errors = cerber_upgrade_db() ) {
+        // TODO make it work, see CRB_Globals::$doing_upgrade
+		cerber_admin_notice( $errors );
+	}
+
+	cerber_antibot_gene( true );
+	cerber_upgrade_settings();
+	cerber_htaccess_sync( 'main' );
+
+	cerber_bg_task_add( 'cerber_upgrade_deferred' );
+
+	update_site_option( '_cerber_up', array( 'v' => CERBER_VER, 't' => time() ) );
+
+	cerber_push_the_news();
+	cerber_delete_expired_set( true );
+	CRB_Cache::reset();
+	if ( wp_next_scheduled( 'cerber_hourly' ) ) {
+		wp_clear_scheduled_hook( 'cerber_hourly' ); // not in use since v. 5.8.
+	}
+
+	lab_get_key( true );
+	CRB_Globals::$doing_upgrade = false;
+	delete_site_transient( 'update_plugins' );
+
+	@ini_set( 'display_errors', $d );
 }
 
 /**
@@ -6038,7 +6257,7 @@ function cerber_create_db($recreate = true) {
 /**
  * Upgrade structure of existing DB tables
  *
- * @return array Errors occured during upgrading
+ * @return array Errors occurred during upgrading database tables
  *
  * @since 3.0
  */
@@ -6140,6 +6359,14 @@ function cerber_upgrade_db( $force = false ) {
 		';
 	}
 
+	// @since 8.9.4
+	if ( $force || ! cerber_is_column( CERBER_LOG_TABLE, 'ac_status' ) ) {
+		$sql[] = 'ALTER TABLE ' . CERBER_LOG_TABLE . '
+		ADD ac_bot int(10) UNSIGNED NOT NULL DEFAULT 0,
+		ADD ac_status int(10) UNSIGNED NOT NULL DEFAULT 0,
+		ADD ac_by_user bigint(20) UNSIGNED NOT NULL DEFAULT 0';
+	}
+
 	if ( ! empty( $sql ) ) {
 		foreach ( $sql as $query ) {
 			$query = str_replace( '"', '\'', $query );
@@ -6149,8 +6376,8 @@ function cerber_upgrade_db( $force = false ) {
 
 	cerber_acl_fixer();
 
-	if ( $db_errors = cerber_db_get_errors( true ) ) {
-		cerber_db_error_log( $db_errors );
+	if ( $db_errors = cerber_db_get_errors() ) {
+		cerber_db_error_log( cerber_db_get_errors( true, false ) );
 	}
 
 	return $db_errors;
@@ -6349,11 +6576,11 @@ function cerber_login_scripts() {
 		wp_enqueue_script( 'jquery' );
 	}
 }
+
 add_action( 'wp_enqueue_scripts', 'cerber_scripts' );
 function cerber_scripts() {
-	global $wp_cerber;
 	if ( ( ( is_singular() || is_archive() ) && cerber_antibot_enabled( array( 'botscomm', 'botsany' ) ) )
-	     || ( $wp_cerber->getSettings( 'sitekey' ) && $wp_cerber->getSettings( 'secretkey' ) )
+	     || ( crb_get_settings( 'sitekey' ) && crb_get_settings( 'secretkey' ) )
 	) {
 		wp_enqueue_script( 'jquery' );
 	}
@@ -6366,19 +6593,16 @@ function cerber_scripts() {
  */
 add_action( 'login_footer', 'cerber_login_register_stuff', 1000 );
 function cerber_login_register_stuff() {
-	global $wp_cerber;
 
 	cerber_antibot_code( array( 'botsreg', 'botsany' ) );
 
-	if ( ! $wp_cerber->recaptcha_here ) {
+	if ( ! get_wp_cerber()->recaptcha_here ) {
 		return;
 	}
 
 	// Universal JS
 
-	$sitekey = $wp_cerber->getSettings('sitekey');
-
-	if ( ! $wp_cerber->getSettings( 'invirecap' ) ) {
+	if ( ! crb_get_settings( 'invirecap' ) ) {
 		// Classic version (visible reCAPTCHA)
 		echo '<script src = https://www.google.com/recaptcha/api.js?hl=' . cerber_recaptcha_lang() . ' async defer></script>';
 	}
@@ -6405,7 +6629,7 @@ function cerber_login_register_stuff() {
                     'callback': function (g_recaptcha_response) {
                         HTMLFormElement.prototype.submit.call(form);
                     },
-                    'sitekey': '<?php echo $sitekey; ?>',
+                    'sitekey': '<?php echo crb_get_settings('sitekey'); ?>',
                     'size': 'invisible',
                     'badge': 'bottomright'
                 });
@@ -6427,13 +6651,12 @@ function cerber_login_register_stuff() {
  */
 add_action( 'wp_footer', 'cerber_wp_footer', PHP_INT_MAX );
 function cerber_wp_footer() {
-	global $wp_cerber;
 
 	if ( is_singular() || is_archive() ) {
 		cerber_antibot_code( array( 'botscomm', 'botsany' ) );
 	}
 
-	if ( ! $wp_cerber->recaptcha_here ) {
+	if ( ! get_wp_cerber()->recaptcha_here ) {
 		return;
 	}
 
@@ -6503,7 +6726,6 @@ register_shutdown_function( function () {
 } );
 
 function cerber_error_shield( $mode = 1 ) {
-	global $cerber_act_status, $cerber_blocked;
 
 	if ( ! $mode || ( crb_get_settings( 'tierrnoauth' ) && crb_is_user_logged_in() ) ) {
 		return;
@@ -6559,12 +6781,12 @@ function cerber_error_shield( $mode = 1 ) {
 	cerber_db_query( 'INSERT INTO ' . CERBER_QMEM_TABLE . ' (ip, http_code, stamp) 
 	        VALUES ("' . $ip . '",' . intval( http_response_code() ) . ',' . time() . ')' );
 
-	if ( ! $cerber_blocked ) {
+	if ( ! CRB_Globals::$blocked ) {
 		$t = time() - $time;
 		$c = cerber_db_get_var( 'SELECT COUNT(ip) FROM ' . CERBER_QMEM_TABLE . ' WHERE  ip = "' . $ip . '" AND stamp > ' . $t );
 		if ( $c >= $limit ) {
 			cerber_soft_block_add( $ip, 711 );
-			$cerber_act_status = 18;
+			CRB_Globals::$act_status = 18;
 		}
 	}
 
@@ -6585,7 +6807,7 @@ function cerber_catch_error( $errno, $errstr = null, $errfile = null, $errline =
 }
 
 function cerber_traffic_log(){
-	global $cerber_req_status, $cerber_php_errors, $wp_query, $wp_cerber_user_id, $wp_cerber_start_stamp, $blog_id;
+	global $cerber_php_errors, $wp_query, $wp_cerber_start_stamp, $blog_id;
 	static $done = false;
 
 	if ( $done || cerber_is_cloud_request() ) {
@@ -6648,8 +6870,8 @@ function cerber_traffic_log(){
 	if ( function_exists( 'get_current_user_id' ) ) {
 		$user_id = get_current_user_id();
 	}
-	if ( ! $user_id && $wp_cerber_user_id ) {
-		$user_id = absint( $wp_cerber_user_id );
+	if ( ! $user_id && CRB_Globals::$user_id ) {
+		$user_id = absint( CRB_Globals::$user_id );
 	}
 
 	if ( ! cerber_to_log( $wp_type, $http_code, $user_id ) ) {
@@ -6817,7 +7039,7 @@ function cerber_traffic_log(){
 	$fields = ( $fields ) ? cerber_real_escape( $fields ) : '';
 	$php_err = ( $php_err ) ? cerber_real_escape( $php_err ) : '';
 
-	if ( ! $req_status = absint( $cerber_req_status ) ) {
+	if ( ! $req_status = absint( CRB_Globals::$req_status ) ) {
 		if ( crb_acl_is_white() ) {
 			$req_status = 510;
 		}
@@ -6859,7 +7081,6 @@ function cerber_traffic_log(){
  * @since 6.0
  */
 function cerber_to_log( $wp_type, $http_code, $user_id ) {
-	global $cerber_logged, $cerber_blocked, $cerber_req_status;
 
 	if ( nexus_is_valid_request() ) {
 		return false;
@@ -6896,7 +7117,7 @@ function cerber_to_log( $wp_type, $http_code, $user_id ) {
 	}
 
 	if ( $mode == 3 ) {
-		if ( $cerber_logged ) {
+		if ( CRB_Globals::$logged ) {
 			return true;
 		}
 
@@ -6905,19 +7126,19 @@ function cerber_to_log( $wp_type, $http_code, $user_id ) {
 
 	// Smart mode ---------------------------------------------------------
 
-	if ( ! empty( $cerber_req_status ) ) {
+	if ( ! empty( CRB_Globals::$req_status ) ) {
 		return true;
 	}
 
-	if ( ! empty( $cerber_logged ) ) {
-		$tmp = $cerber_logged;
-		unset( $tmp[7], $tmp[51], $tmp[52] );
+	if ( ! empty( CRB_Globals::$logged ) ) {
+		$tmp = CRB_Globals::$logged;
+		unset( $tmp[ CRB_EV_LFL ], $tmp[51], $tmp[52] );
 		if ( ! empty( $tmp ) ) {
 			return true;
 		}
 	}
 
-	if ( $cerber_blocked ) {
+	if ( CRB_Globals::$blocked ) {
 		return true;
 	}
 
@@ -7110,7 +7331,6 @@ function cerber_get_non_wp_fields() {
  * @since 6.0
  */
 function cerber_beast() {
-	global $cerber_act_status, $cerber_req_status;
 
 	if ( is_admin()
 	     || cerber_is_wp_cron()
@@ -7131,7 +7351,7 @@ function cerber_beast() {
 
 	// White list by IP
 	if ( crb_get_settings( 'tiipwhite' ) && crb_acl_is_white() ) {
-		$cerber_req_status = 500;
+		CRB_Globals::$req_status = 500;
 		return;
 	}
 
@@ -7144,7 +7364,7 @@ function cerber_beast() {
 			if ( $item[0] == '{' && substr( $item, - 1 ) == '}' ) {
 				$pattern = '/' . substr( $item, 1, - 1 ) . '/i';
 				if ( @preg_match( $pattern, $uri ) ) {
-					$cerber_req_status = 501;
+					CRB_Globals::$req_status = 501;
 
 					return;
 				}
@@ -7152,7 +7372,7 @@ function cerber_beast() {
 			else {
 				$cmp = ( substr( $item, - 1 ) == '/' ) ? $uri_slash : $uri; // Someone may specify trailing slash
 				if ( $item == $cmp ) {
-					$cerber_req_status = 501;
+					CRB_Globals::$req_status = 501;
 
 					return;
 				}
@@ -7171,7 +7391,7 @@ function cerber_beast() {
 	if ( $uri_script && $script_filename = cerber_script_filename() ) { // @since 8.6.3.4
 		// Scanning for executable scripts?
 		if ( ! cerber_script_exists( $uri ) && ! cerber_is_login_request() ) {
-			$cerber_act_status = 19;
+			CRB_Globals::$act_status = 19;
 			cerber_log( 55 );
 			if ( $ti_mode > 1 ) {
 				cerber_soft_block_add( null, 708 );
@@ -7182,17 +7402,17 @@ function cerber_beast() {
 		$deny = false;
 		if ( crb_acl_is_black() ) {
 			$deny = true;
-			$cerber_act_status = 14;
+			CRB_Globals::$act_status = 14;
 		}
 		//elseif ( ! in_array( $uri_script, cerber_get_wp_scripts() ) ) {
 		elseif ( ! CRB_Request::is_script( cerber_get_wp_scripts() ) ) {
 			if ( ! cerber_is_ip_allowed() ) {
 				$deny = true;
-				$cerber_act_status = 13;
+				CRB_Globals::$act_status = 13;
 			}
 			elseif ( lab_is_blocked( null, true ) ) {
 				$deny = true;
-				$cerber_act_status = 15;
+				CRB_Globals::$act_status = 15;
 			}
 		}
 		if ( $deny ) {
@@ -7248,7 +7468,7 @@ function cerber_screen_request_fields(){
  * @return bool|int
  */
 function cerber_inspect_array( &$array, $white = array() ) {
-	global $cerber_act_status;
+
 	static $rec_limit = null;
 
 	if ( ! $array ) {
@@ -7262,7 +7482,7 @@ function cerber_inspect_array( &$array, $white = array() ) {
 		$rec_limit --;
 		if ( $rec_limit <= 0 ) {
 			$rec_limit   = null;
-			$cerber_act_status = 20;
+			CRB_Globals::$act_status = 20;
 
 			return 100;
 		}
@@ -7289,7 +7509,7 @@ function cerber_inspect_array( &$array, $white = array() ) {
 }
 
 function cerber_inspect_value( &$value = '', $reset = false ) {
-	global $cerber_act_status, $crb_x64;
+
 	static $rec_limit = null; // Real recursion limit
 
 	if ( ! $value || is_numeric( $value ) ) {
@@ -7307,7 +7527,7 @@ function cerber_inspect_value( &$value = '', $reset = false ) {
 		$rec_limit --;
 		if ( $rec_limit <= 0 ) {
 			$rec_limit     = null;
-			$cerber_act_status = 21;
+			CRB_Globals::$act_status = 21;
 
 			return 100;
 		}
@@ -7321,7 +7541,7 @@ function cerber_inspect_value( &$value = '', $reset = false ) {
 	else {
 		$parsed = cerber_detect_php_code( $value );
 		if ( ! empty( $parsed[0] ) ) {
-			$cerber_act_status = 22;
+			CRB_Globals::$act_status = 22;
 			$found = 100;
 		}
 		elseif ( ! empty( $parsed[1] ) ) {
@@ -7333,11 +7553,11 @@ function cerber_inspect_value( &$value = '', $reset = false ) {
 			}
 		}
 		if ( ! $found && cerber_detect_other_code( $value ) ) {
-			$cerber_act_status = 23;
+			CRB_Globals::$act_status = 23;
 			$found         = 100;
 		}
 		if ( ! $found && cerber_detect_js_code( $value ) ) {
-			$cerber_act_status = 24;
+			CRB_Globals::$act_status = 24;
 			$found         = 100;
 		}
 	}
@@ -7772,6 +7992,7 @@ function cerber_parse_change_log( $last_only = false ) {
 	$ver = '';
 
 	foreach ( $text as $line ) {
+		$line = ltrim( $line, '* ' );
 		$line = trim( $line );
 
 		if ( ! $line ) {
@@ -7877,9 +8098,13 @@ function cerber_show_cookies( $attr ) {
 	return $ret;
 }
 
-add_filter( 'rest_after_insert_application_password', function ( $item, $request ) {
-	cerber_log( 150, '', $request->get_param( 'user_id' ) );
-}, 10, 2 );
+add_action( 'wp_create_application_password', function ( $user_id, $new_item, $new_password, $args ) {
+	cerber_log( 150, '', $user_id );
+}, 0, 4 );
+
+add_action( 'wp_update_application_password', function ( $user_id, $item, $update ) {
+	cerber_log( 149, '', $user_id );
+}, 0, 3 );
 
 /**
  * Check if the current user is the website admin (can manage website)

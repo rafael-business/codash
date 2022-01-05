@@ -1065,7 +1065,7 @@ class CRB_Sessions_Table extends WP_List_Table {
 	 * @return string
 	 */
 	function column_default( $item, $column_name ) {
-		global $crb_ajax_loader;
+
 		//return $item[ $column_name ]; // raw output as is
 		switch ( $column_name ) {
 			case 'ses_user':

@@ -4,9 +4,9 @@
  * Plugin Name: Disable Comments
  * Plugin URI: https://wordpress.org/plugins/disable-comments/
  * Description: Allows administrators to globally disable comments on their site. Comments can be disabled according to post type. You could bulk delete comments using Tools.
- * Version: 2.3.1
+ * Version: 2.3.2
  * Author: WPDeveloper
- * Author URI: https://wpdeveloper.net
+ * Author URI: https://wpdeveloper.com
  * License: GPL-3.0+
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: disable-comments
@@ -37,7 +37,7 @@ class Disable_Comments
 
 	function __construct()
 	{
-		define('DC_VERSION', '2.3.1');
+		define('DC_VERSION', '2.3.2');
 		define('DC_PLUGIN_SLUG', 'disable_comments_settings');
 		define('DC_PLUGIN_ROOT_PATH', dirname(__FILE__));
 		define('DC_PLUGIN_VIEWS_PATH', DC_PLUGIN_ROOT_PATH . '/views/');
@@ -819,9 +819,29 @@ class Disable_Comments
 
 	public function settings_page()
 	{
-		if( isset( $_GET['cancel'] ) && trim( $_GET['cancel'] ) === 'setup' ){
-			$this->update_option('dc_setup_screen_seen', true);
+		// if( isset( $_GET['cancel'] ) && trim( $_GET['cancel'] ) === 'setup' ){
+		// 	$this->update_option('dc_setup_screen_seen', true);
+		// }
+		$avatar_status = '-1';
+		if($this->is_network_admin()){
+			$show_avatars = [];
+			$sites = get_sites([
+				'number' => 0,
+				'fields' => 'ids',
+			]);
+			foreach ( $sites as $blog_id ) {
+				switch_to_blog( $blog_id );
+				$show_avatars[] = get_option('show_avatars', '0');
+				restore_current_blog();
+			}
+			if(count($show_avatars) == array_sum($show_avatars)){
+				$avatar_status = '0';
+			}
+			elseif(0 == array_sum($show_avatars)){
+				$avatar_status = '1';
+			}
 		}
+
 		include_once DC_PLUGIN_VIEWS_PATH . 'settings.php';
 	}
 
@@ -918,7 +938,22 @@ class Disable_Comments
 			}
 
 			if(isset($formArray['disable_avatar'])){
-				update_option('show_avatars', (bool) !$formArray['disable_avatar']);
+				if($this->is_network_admin()){
+					if($formArray['disable_avatar'] == '0' || $formArray['disable_avatar'] == '1'){
+						$sites = get_sites([
+							'number' => 0,
+							'fields' => 'ids',
+						]);
+						foreach ( $sites as $blog_id ) {
+							switch_to_blog( $blog_id );
+							update_option('show_avatars', (bool) !$formArray['disable_avatar']);
+							restore_current_blog();
+						}
+					}
+				}
+				else{
+					update_option('show_avatars', (bool) !$formArray['disable_avatar']);
+				}
 			}
 			// xml rpc
 			$this->options['remove_xmlrpc_comments'] = (isset($formArray['remove_xmlrpc_comments']) ? intval($formArray['remove_xmlrpc_comments']) : ($this->is_CLI && isset($this->options['remove_xmlrpc_comments']) ? $this->options['remove_xmlrpc_comments'] : 0));

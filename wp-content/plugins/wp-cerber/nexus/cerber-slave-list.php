@@ -373,7 +373,7 @@ class CRB_Slave_Table extends WP_List_Table {
 					nexus_refresh_slave_srv( $item['id'] );
 					$srv = nexus_get_srv_info( $item['server_id'] );
 					if ( ! $srv ) {
-						return 'Updating...';
+						return '-';
 					}
 				}
 

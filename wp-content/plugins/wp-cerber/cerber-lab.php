@@ -176,11 +176,15 @@ function lab_api_send_request( $workload = array(), $payload_key = null ) {
 		return false;
 	}
 
+	$site = lab_get_site_meta( false );
+
 	$request = array(
 		'key'      => $key,
 		'workload' => $workload,
 		'push'     => $push,
-		'lang'     => crb_get_bloginfo( 'language' ),
+		//'lang'     => crb_get_bloginfo( 'language' ),
+		'lang'     => $site['lang'],
+		'wp_ver'   => $site['wp_ver'],
 		'multi'    => is_multisite(),
 		'version'  => CERBER_VER,
 		'PHP'      => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION,
@@ -608,7 +612,6 @@ function lab_is_cloud_ok(){
  * @param $details
  */
 function lab_save_push( $ip, $reason_id, $details = null ) {
-	global $cerber_act_status;
 	static $done = false;
 
 	if ( $done || cerber_check_groove() ) {
@@ -625,7 +628,7 @@ function lab_save_push( $ip, $reason_id, $details = null ) {
 		$details = array( 'uri' => $_SERVER['REQUEST_URI'] );
 	}
 	elseif ( $reason_id == 100 ) {
-		$details = absint( $cerber_act_status );
+		$details = absint( CRB_Globals::$act_status );
 	}
 
 	if ( is_array( $details ) ) {
@@ -1114,6 +1117,34 @@ function lab_get_real_node_id() {
 	}
 
 	$ret = absint( substr( $domain[0], 4, 2 ) ); // 0-99
+
+	return $ret;
+}
+
+/**
+ * Returns cached statistical site info
+ *
+ * @param bool $update If true, update (regenerate) the cache
+ *
+ * @return array
+ */
+function lab_get_site_meta( $update = true ) {
+
+	if ( ! $update ) {
+		$ret = cerber_get_set( CRB_SITE_SET, null, true, true );
+	}
+	else {
+		$ret = false;
+	}
+
+	if ( empty( $ret ) || ! is_array( $ret ) ) {
+		$ret = array(
+			'lang'   => crb_get_bloginfo( 'language' ),
+			'wp_ver' => cerber_get_wp_version(),
+		);
+
+		cerber_update_set( CRB_SITE_SET, $ret, null, true, time() + 7200, true );
+	}
 
 	return $ret;
 }

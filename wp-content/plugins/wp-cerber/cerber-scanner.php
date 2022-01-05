@@ -4426,7 +4426,7 @@ function cerber_quarantine_file( $file_name, $scan_id, $move = true ) {
 
 		if ( is_wp_error( $can ) ) {
 			return $can;
-			//return new WP_Error( 'cerber-del', "This file can't be deleted: " . $file_name );
+			//return new WP_Error( 'cerber-del', "This file may not be deleted: " . $file_name );
 		}
 	}
 
@@ -4541,28 +4541,25 @@ function crb_move_copy( $file_name, $new_name, $move = true ) {
 }
 
 /**
- * Some files cannot be deleted
+ * Can a given file be safely deleted? Some files may not.
  *
- * @param $file_name
+ * @param string $file_name
  * @param bool $check_inclusion
  *
- * @return true|WP_Error true if a file can be safely deleted
+ * @return true|WP_Error true if a file may be safely deleted
  */
 function cerber_can_be_deleted( $file_name, $check_inclusion = false ) {
 
 	if ( ! file_exists( $file_name ) || ! is_file( $file_name ) || is_link( $file_name ) ) {
 		return new WP_Error( 'cerber_no_file', 'This file cannot be deleted because it doesn\'t exist: ' . $file_name );
-		//return false;
 	}
 
 	if ( cerber_is_htaccess( $file_name ) || cerber_is_dropin( $file_name ) ) {
 		return new WP_Error( 'cerber_file_not_allowed', 'This file is not allowed to be deleted: ' . $file_name );
-		//return false;
 	}
 
 	if ( $check_inclusion && in_array( $file_name, get_included_files() ) ) {
 		return new WP_Error( 'cerber_file_active', 'This file cannot be deleted because it \'s loaded and in use: ' . $file_name );
-		//return false;
 	}
 
 	if ( basename( $file_name ) == 'wp-config.php' ) {
@@ -4573,11 +4570,7 @@ function cerber_can_be_deleted( $file_name, $check_inclusion = false ) {
 		     || ( ! file_exists( $abspath . 'wp-config.php' ) && $file_name == dirname( $abspath ) . DIRECTORY_SEPARATOR . 'wp-config.php' ) ) {
 
 			return new WP_Error( 'cerber_file_not_allowed', 'This file is not allowed to be deleted: ' . $file_name );
-			//return false;
 		}
-		/*if ( ! file_exists( $abspath . 'wp-config.php' ) && $file_name == dirname( $abspath ) . DIRECTORY_SEPARATOR . 'wp-config.php' ) {
-			return false;
-		}*/
 	}
 
 	return true;

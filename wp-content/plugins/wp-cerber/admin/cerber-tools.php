@@ -98,7 +98,7 @@ function cerber_export() {
 	$file = json_encode( $data );
 	$file .= '==/' . strlen( $file ) . '/' . crc32( $file ) . '/EOF';
 
-	crb_file_headers( 'wpcerber.config', 'application/octet-stream' );
+	crb_file_headers( 'wpcerber.config', 'text/plain' );
 
 	echo $file;
 	exit;
@@ -109,7 +109,7 @@ function cerber_export() {
  *
  */
 function cerber_import() {
-	global $wpdb, $wp_cerber;
+	global $wpdb;
 
 	if ( ! isset( $_POST['cerber_import'] ) || ! cerber_is_http_post() ) {
 		return;
@@ -199,8 +199,8 @@ function cerber_import() {
 			if ( isset( $_POST['importset'] ) && $data['options'] && ! empty( $data['options'] ) && is_array( $data['options'] ) ) {
 				$data['options']['loginpath'] = urldecode( $data['options']['loginpath'] ); // needed for filter cerber_sanitize_m()
 				if ( $data['home'] != cerber_get_home_url() ) {
-					$data['options']['sitekey']   = $wp_cerber->getSettings( 'sitekey' );
-					$data['options']['secretkey'] = $wp_cerber->getSettings( 'secretkey' );
+					$data['options']['sitekey'] = crb_get_settings( 'sitekey' );
+					$data['options']['secretkey'] = crb_get_settings( 'secretkey' );
 				}
 				cerber_save_settings( $data['options'] ); // @since 2.0
 				if ( isset( $data['geo-rules'] ) ) {

@@ -5,7 +5,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Requires at least: 4.9
 Requires PHP: 7.0
 Tested up to: 5.8
-Stable tag: 8.9.3
+Stable tag: 8.9.5
 License: GPLv2
 
 Protection against hacker attacks and bots. Malware scanner & integrity checker. User activity log. Antispam reCAPTCHA. Limit login attempts.
@@ -317,65 +317,83 @@ To get access to your dashboard you need to copy the WP Cerber Reset folder to t
 
 == Changelog ==
 
+= 8.9.5 =
+* New: A new setting for [WP Cerber's anti-spam engine](https://wpcerber.com/antispam-for-wordpress-contact-forms/): "Disable bot detection engine for IP addresses in the White IP Access List".
+* New: A new setting for [the reCAPTCHA module](https://wpcerber.com/how-to-setup-recaptcha/): "Disable reCAPTCHA for IP addresses in the White IP Access List".
+* Improved: Logging all user session terminations including those that occurred when an admin manually terminate user sessions or [block users](https://wpcerber.com/how-to-block-wordpress-user/).
+* Improved: If a user session has been terminated by a website admin, the admin’s name is logged and shown in the Activity log.
+* Improved: Logging all user password changes including those made on the edit user admin page, and the WooCommerce edit account page.
+* Improved: Logging [application passwords](https://wpcerber.com/wordpress-application-passwords-how-to/) changes.
+* Improved: New status labels in the Activity log: "reCAPTCHA verified" is shown when a user solves reCAPTCHA successfully
+* Improved: New status labels in the Activity log: "Logged out everywhere" is shown when a user has completely logged out on all devices and of all locations.
+* Improved: Failed reCAPTCHA verifications are logged with form submission events they are linked to.
+* Improved: A new event is logged: "Password reset request denied". With possible statuses "reCAPTCHA verification failed", "User blocked by administrator", "Username is prohibited".
+* Improved: Handling reset of user passwords is improved to support changes in the WordPress core.
+* Fixed: A cookie-related bug that causes a fatal software error if a user has been deleted or their password has been changed in the WordPress dashboard by the website administrator while the user is being logged in.
+* Fixed: A bug with the WordPress lost password (reset password) form that prevents displaying error messages to a user.
+* Fixed: When the [limit on the number of allowed concurrent user sessions](https://wpcerber.com/limiting-concurrent-user-sessions-in-wordpress/) is set to one, an attempt to log in with the user name and incorrect password terminates the existing session of the user.
+* [Read more](https://wpcerber.com/wp-cerber-security-8-9-5/)
+
 = 8.9.3 =
-Improved: The scanner: now checksums generated using manually uploaded ZIP archives have priority over the remote ones.
-Improved: You can configure exceptions for WP Cerber's anti-spam by disabling its code on selected WordPress pages.
-Improved: New diagnostic messages were added for better troubleshooting issues with ZIP archives uploaded in the scanner.
-Fixed: A vulnerability that affects WP Cerber's two-factor authentication (2FA) mechanism.
-Fixed: A bug that prevents uploading ZIP archives on the scan results page if the filename contains multiple dots.
-Fixed: Fixed admin message "Error: Sorry, that username is not allowed." which is wrongly displayed on the user edit page while updating users with prohibited usernames.
-Fixed: Not detecting malformed REST API requests with a question mark in this format: /wp-json?
+* Improved: The scanner: now checksums generated using manually uploaded ZIP archives have priority over the remote ones.
+* Improved: You can configure exceptions for WP Cerber's anti-spam by disabling its code on selected WordPress pages.
+* Improved: New diagnostic messages were added for better troubleshooting issues with ZIP archives uploaded in the scanner.
+* Fixed: A vulnerability that affects WP Cerber's two-factor authentication (2FA) mechanism.
+* Fixed: A bug that prevents uploading ZIP archives on the scan results page if the filename contains multiple dots.
+* Fixed: Fixed admin message "Error: Sorry, that username is not allowed." which is wrongly displayed on the user edit page while updating users with prohibited usernames.
+* Fixed: Not detecting malformed REST API requests with a question mark in this format: /wp-json?
+* [Read more](https://wpcerber.com/wp-cerber-security-8-9-3/)
 
 = 8.9 =
-Improved: An updated scan statistic and filtering widget. Dynamically displays the most important issues with sorting.
-Improved: The percentage of completion of a scanner step is shown now.
-Improved: Sanitizing of malformed filenames in the scanner reports has been improved to avoid possible issues with the layout of the scan results page if malware creates malformed filenames to hinder their detection.
-Improved: Handling of WordPress locales and versions on websites with multilanguage plugins has been improved.
-Improved: A missing wp-config-sample.php file is not reported as an issue in the results of the scan anymore.
-Improved: Handling REGEX patterns for the setting fields "Restrict email addresses" and "Prohibited usernames". Now they support REGEX quantifiers.
-Improved: You can specify the "User-Agent" string for requests from the main (master) Cerber.Hub website by defining the PHP constant CERBER_HUB_UA in the wp-config.php file.
-Improved: Diagnostic logging for network requests to the WP Cerber cloud. To enable logging, define the PHP constant CERBER_CLOUD_DEBUG in the wp-config.php file. Logging covers admin operations on the WP Cerber admin pages only.
-Improved: Text on the forbidden page is translatable now.
-Fixed bug: Some long filenames in the scan results break the layout of the scan results page, making it hard to navigate and use.
-Fixed bug: Unwanted file extensions are not detected if a file is identified as malicious.
-Fixed bug: If a file is missing, the full filename is not shown in the scan results when clicking the “Show full filenames” icon.
-Fixed bug: "PHP Deprecated: Required parameter $function follows optional parameter $pattern in /plugins/wp-cerber/cerber-scanner.php".
-Fixed bug: "PHP Fatal error: Call to undefined function crb_admin_hash_token() in cerber-load.php:1521".
-Fixed bug: "PHP Notice: Undefined property: WP_Error::$ID in cerber-load.php on line 1131".
+* Improved: An updated scan statistic and filtering widget. Dynamically displays the most important issues with sorting.
+* Improved: The percentage of completion of a scanner step is shown now.
+* Improved: Sanitizing of malformed filenames in the scanner reports has been improved to avoid possible issues with the layout of the scan results page if malware creates malformed filenames to hinder their detection.
+* Improved: Handling of WordPress locales and versions on websites with multilanguage plugins has been improved.
+* Improved: A missing wp-config-sample.php file is not reported as an issue in the results of the scan anymore.
+* Improved: Handling REGEX patterns for the setting fields "Restrict email addresses" and "Prohibited usernames". Now they support REGEX quantifiers.
+* Improved: You can specify the "User-Agent" string for requests from the main (master) Cerber.Hub website by defining the PHP constant CERBER_HUB_UA in the wp-config.php file.
+* Improved: Diagnostic logging for network requests to the WP Cerber cloud. To enable logging, define the PHP constant CERBER_CLOUD_DEBUG in the wp-config.php file. Logging covers admin operations on the WP Cerber admin pages only.
+* Improved: Text on the forbidden page is translatable now.
+* Fixed bug: Some long filenames in the scan results break the layout of the scan results page, making it hard to navigate and use.
+* Fixed bug: Unwanted file extensions are not detected if a file is identified as malicious.
+* Fixed bug: If a file is missing, the full filename is not shown in the scan results when clicking the “Show full filenames” icon.
+* Fixed bug: "PHP Deprecated: Required parameter $function follows optional parameter $pattern in /plugins/wp-cerber/cerber-scanner.php".
+* Fixed bug: "PHP Fatal error: Call to undefined function crb_admin_hash_token() in cerber-load.php:1521".
+* Fixed bug: "PHP Notice: Undefined property: WP_Error::$ID in cerber-load.php on line 1131".
 * [Read more](https://wpcerber.com/wp-cerber-security-8-9/)
 
 = 8.8.6 =
 * New: You can specify the "User-Agent" string for requests from the main (master) Cerber.Hub website by defining the PHP constant CERBER_HUB_UA in the wp-config.php file.
 * New: Diagnostic logging for network requests to the WP Cerber cloud. To enable logging, define the PHP constant CERBER_CLOUD_DEBUG in the wp-config.php file. Logging covers admin operations on the WP Cerber admin pages only.
-Fixed bug: "PHP Fatal error: Call to undefined function crb_admin_hash_token() in cerber-load.php:1521".
-Fixed bug: "PHP Notice: Undefined property: WP_Error::$ID in cerber-load.php on line 1131".
+* Fixed bug: "PHP Fatal error: Call to undefined function crb_admin_hash_token() in cerber-load.php:1521".
+* Fixed bug: "PHP Notice: Undefined property: WP_Error::$ID in cerber-load.php on line 1131".
 
 = 8.8.5 =
 * New: Quick user activity analytics (user insights) with filtering links on the Activity and Live Traffic log pages. Select a user to see how it works.
 * New: Quick IP address activity and analytics (IP insights) with filtering links on the Activity and Live Traffic log pages. Select an IP address to see how it works.
-Improved: The selected user profile is displayed when filtering log entries by the user login or using the username search on the Activity log page.
-Improved: The IP address details and analytics are displayed when filtering log entries by the IP address or using the IP address search on the Activity log page.
-Improved: Implemented AJAX rendering of the plugin admin pages for faster loading and more convenient navigation through WP Cerber’s admin pages
-Improved: To load the Users admin page faster, the user table columns generated by WP Cerber are now loaded via AJAX.
-Improved: Highlighting the selected filtering link in the navigation bar on the Activity and Live Traffic log pages.
-Improved: You will not see false DB errors on the Diagnostic page anymore.
-Fixed bug: When scanning, you can come across the software error "Process has been aborted due to server error. Check the browser console for errors." and "Too few arguments" error in the server error log.
+* Improved: The selected user profile is displayed when filtering log entries by the user login or using the username search on the Activity log page.
+* Improved: The IP address details and analytics are displayed when filtering log entries by the IP address or using the IP address search on the Activity log page.
+* Improved: Implemented AJAX rendering of the plugin admin pages for faster loading and more convenient navigation through WP Cerber’s admin pages
+* Improved: To load the Users admin page faster, the user table columns generated by WP Cerber are now loaded via AJAX.
+* Improved: Highlighting the selected filtering link in the navigation bar on the Activity and Live Traffic log pages.
+* Improved: You will not see false DB errors on the Diagnostic page anymore.
+* Fixed bug: When scanning, you can come across the software error "Process has been aborted due to server error. Check the browser console for errors." and "Too few arguments" error in the server error log.
 
 = 8.8.3 =
-New: Mimicking the default WordPress user authentication through the wp-login.php to detect slow brute-force attacks.
-New: Prevent guessing valid usernames and user emails by disabling WordPress hints in the login error message when attempting to log in with non-existing usernames and emails.
-New: Prevent guessing valid usernames and user emails by disabling WordPress hints in the password reset error message when attempting to reset passwords for non-existing accounts.
-New: Prevent username discovery via oEmbed and user XML sitemaps.
-New: User and malicious activity are displayed separately in two different areas on WP Cerber’s main dashboard page.
-New: More convenient navigation through the WP Cerber admin pages by having the admin menu at the top.
-New: A new quick link "Login issues" to view all login issues such as failed logins, denied attempts, attempts to reset passwords, and so forth.
-Improved: Reduced the number of false positives when the malware scanner inspecting directives with external IP addresses in .htaccess files.
-Improved: Better 2FA emails: the wording of the verification email has been updated and can be translated. The email subject includes the site name.
-Improved: The size of the database tables used by the integrity checker and malware scanner has been reduced.
-Improved: Implemented a strictly secure way of utilizing the unserialize() PHP function known for being used to deliver and run malicious code.
-Improved: Implemented a backup way of running WP Cerber maintenance tasks if WordPress scheduled tasks are not configured properly.
-Fixed bug: 2FA PINs are not displayed on the edit user admin pages in the WordPress dashboard.
-Fixed bug: The "API request authorization failed" event was logged as "Login failed".
+* New: Mimicking the default WordPress user authentication through the wp-login.php to detect slow brute-force attacks.
+* New: Prevent guessing valid usernames and user emails by disabling WordPress hints in the login error message when attempting to log in with non-existing usernames and emails.
+* New: Prevent guessing valid usernames and user emails by disabling WordPress hints in the password reset error message when attempting to reset passwords for non-existing accounts.
+* New: Prevent username discovery via oEmbed and user XML sitemaps.
+* New: User and malicious activity are displayed separately in two different areas on WP Cerber’s main dashboard page.
+* New: More convenient navigation through the WP Cerber admin pages by having the admin menu at the top.
+* New: A new quick link "Login issues" to view all login issues such as failed logins, denied attempts, attempts to reset passwords, and so forth.
+* Improved: Reduced the number of false positives when the malware scanner inspecting directives with external IP addresses in .htaccess files.
+* Improved: Better 2FA emails: the wording of the verification email has been updated and can be translated. The email subject includes the site name.
+* Improved: The size of the database tables used by the integrity checker and malware scanner has been reduced.
+* Improved: Implemented a strictly secure way of utilizing the unserialize() PHP function known for being used to deliver and run malicious code.
+* Improved: Implemented a backup way of running WP Cerber maintenance tasks if WordPress scheduled tasks are not configured properly.
+* Fixed bug: 2FA PINs are not displayed on the edit user admin pages in the WordPress dashboard.
+* Fixed bug: The "API request authorization failed" event was logged as "Login failed".
 
 = 8.8 =
 * New: [You get control over the WordPress application passwords and the ability to monitor related events in the log with email and mobile notifications.](https://wpcerber.com/wordpress-application-passwords-how-to/)

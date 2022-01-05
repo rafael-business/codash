@@ -882,7 +882,7 @@ function nexus_get_update( $plugin, $version = null ) {
  * @return bool|array|string|WP_Error
  */
 function nexus_net_send_request( $payload, $slave ) {
-	global $crb_assets_url, $nexus_last_http, $nexus_last_curl;
+	global $nexus_last_http, $nexus_last_curl;
 
 	if ( ! is_super_admin()
 	     && ! ( defined( 'CRB_DOING_BG_TASK' ) && CRB_DOING_BG_TASK ) ) {
@@ -905,7 +905,7 @@ function nexus_net_send_request( $payload, $slave ) {
 	$data['seal']    = nexus_seal();
 	$data['params']  = $_GET;
 	$data['base']    = ( ! is_multisite() ) ? admin_url() : network_admin_url();
-	$data['assets']  = $crb_assets_url;
+	$data['assets']  = CRB_Globals::$assets_url;
 	$data['is_post'] = cerber_is_http_post();
 	$data['payload'] = $payload;
 	$data[ rand() ]  = rand(); // random checksum for identical requests
@@ -1361,9 +1361,10 @@ add_action( 'admin_head', function () {
 });
 
 add_action( 'wp_ajax_cerber_master_ajax', function () {
-	global $crb_assets_url;
+
 	check_ajax_referer( 'crb-ajax-admin', 'ajax_nonce' );
-	if ( ! is_super_admin() ) {
+
+    if ( ! is_super_admin() ) {
 		wp_die( 'Oops! Access denied.' );
 	}
 

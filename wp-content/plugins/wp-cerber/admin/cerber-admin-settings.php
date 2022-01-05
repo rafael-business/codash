@@ -768,13 +768,13 @@ add_filter( 'pre_update_option_' . CERBER_OPT_A, function ( $new, $old, $option 
 	Sanitizing/checking user input for reCAPTCHA tab settings
 */
 add_filter( 'pre_update_option_'.CERBER_OPT_C, function ($new, $old, $option) {
-	global $wp_cerber;
+
 	// Check ability to make external HTTP requests
-	if ($wp_cerber && !empty($new['sitekey']) && !empty($new['secretkey'])) {
-		if (!$goo = $wp_cerber->reCaptchaRequest('1')) {
-			$labels = cerber_get_labels( 'activity' );
-			cerber_admin_notice( __( 'ERROR:', 'wp-cerber' ) . ' ' . $labels[42] );
-			cerber_log( 42 );
+	if ( ! empty( $new['sitekey'] ) && ! empty( $new['secretkey'] ) ) {
+		if ( ( ! $goo = get_wp_cerber()->reCaptchaRequest( '1' ) )
+		     || ! isset( $goo['success'] ) ) {
+			$labels = cerber_get_labels( 'status' );
+			cerber_admin_notice( __( 'ERROR:', 'wp-cerber' ) . ' ' . $labels[534] );
 		}
 	}
 

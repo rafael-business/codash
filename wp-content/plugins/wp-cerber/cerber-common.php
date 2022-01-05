@@ -42,10 +42,20 @@ const CRB_SANITIZE_ID = '[a-z\d\_\-\.\:\*\/]+';
 const CRB_SANITIZE_KEY = '/[^a-z_\-\d.:\/]/i';
 const CRB_GROOVE = 'cerber_groove';
 
-const CRB_EV_LFL = 53;
+const CRB_EV_LFL = 7;
+const CRB_EV_LDN = 53;
 
+const CRB_EV_PRS = 21;
+const CRB_EV_PRD = 25;
+
+const CRB_STS_25 = 25;
+const CRB_STS_29 = 29;
+const CRB_STS_30 = 30;
+
+const CRB_STS_11 = 11;
 const CRB_STS_51 = 51;
 const CRB_STS_52 = 52;
+const CRB_STS_532 = 532;
 
 /**
  * Known WP scripts
@@ -449,7 +459,7 @@ function cerber_check_environment() {
 		cerber_admin_notice( sprintf( __( 'WP Cerber requires PHP %s or higher. You are running %s', 'wp-cerber' ), CERBER_REQ_PHP, phpversion() ) );
 	}
 
-	if ( version_compare( CERBER_REQ_WP, cerber_get_wp_version(), '>' ) ) {
+	if ( ! crb_wp_version_compare( CERBER_REQ_WP ) ) {
 		cerber_admin_notice( sprintf( __( 'WP Cerber requires WordPress %s or higher. You are running %s', 'wp-cerber' ), CERBER_REQ_WP, cerber_get_wp_version() ) );
 	}
 
@@ -1149,7 +1159,6 @@ function cerber_is_route_allowed() {
 }
 
 function cerber_is_rest_permitted() {
-	global $cerber_req_status, $wp_cerber_user_id;
 
 	// Exception: application passwords route @since WP Cerber 8.8 & WP 5.6 -> permissions are checked in the WP core
 	if ( preg_match( '#^wp/v\d+/users/\d+/application-passwords#', crb_get_rest_path() ) ) {
@@ -1175,7 +1184,7 @@ function cerber_is_rest_permitted() {
 		return true;
 	}
 
-	$wp_cerber_user_id = get_current_user_id();
+	CRB_Globals::$user_id = get_current_user_id();
 
 	if ( $opt['restauth'] && is_user_logged_in() ) {
 		return true;
@@ -1186,7 +1195,7 @@ function cerber_is_rest_permitted() {
 		$namespace = substr( $rest_path, 0, strpos( $rest_path, '/' ) );
 		foreach ( $opt['restwhite'] as $exception ) {
 			if ( $exception == $namespace ) {
-				$cerber_req_status = 503;
+				CRB_Globals::$req_status = 503;
 
 				return true;
 			}
@@ -1298,6 +1307,11 @@ function crb_user_has_role_strict( $roles, $user_id ) {
 	return ( ! array_diff( $user_roles, $roles ) );
 }
 
+/**
+ * @param int $uid User ID
+ *
+ * @return false|array
+ */
 function crb_is_user_blocked( $uid ) {
 	if ( $uid
 	     && ( $m = get_user_meta( $uid, CERBER_BUKEY, 1 ) )
@@ -1378,15 +1392,8 @@ function crb_check_user_limits( $user_id ) {
 		else {
 			$started = array_column( $list, 'started' );
 			array_multisort( $started, SORT_ASC, SORT_NUMERIC, $list );
-
-			// Doesn't work
-			/* $manager = WP_Session_Tokens::get_instance( $user_id );
-			$manager->destroy( $list[0]['wp_session_token'] );
-			*/
-
-			if ( crb_sessions_kill( $list[0]['wp_session_token'], $user_id, false ) ) {
-				cerber_log( 22, '', $user_id, 38 );
-			}
+			CRB_Globals::$session_status = 38;
+			crb_sessions_kill( $list[0]['wp_session_token'], $user_id, false );
 		}
 	}
 
@@ -1555,7 +1562,7 @@ function cerber_get_labels( $type = 'activity' ) {
 		$act[3] = __( 'User deleted', 'wp-cerber' );
 		$act[5] = __( 'Logged in', 'wp-cerber' );
 		$act[6] = __( 'Logged out', 'wp-cerber' );
-		$act[7] = __( 'Login failed', 'wp-cerber' );
+		$act[ CRB_EV_LFL ] = __( 'Login failed', 'wp-cerber' );
 
 		// Cerber actions - IP specific - lockouts
 		$act[10] = __( 'IP blocked', 'wp-cerber' );
@@ -1576,19 +1583,23 @@ function cerber_get_labels( $type = 'activity' ) {
 
 		// Other events
 		$act[20] = __( 'Password changed', 'wp-cerber' );
-		$act[21] = __( 'Password reset requested', 'wp-cerber' );
+		$act[ CRB_EV_PRS ] = __( 'Password reset requested', 'wp-cerber' );
 		$act[22] = __( 'User session terminated', 'wp-cerber' );
 
+		$act[ CRB_EV_PRD ] = __( 'Password reset request denied', 'wp-cerber' );
+
+		// Not in use and replaced by statuses 532 - 534 since 8.9.4.
 		$act[40] = __( 'reCAPTCHA verification failed', 'wp-cerber' );
 		$act[41] = __( 'reCAPTCHA settings are incorrect', 'wp-cerber' );
 		$act[42] = __( 'Request to the Google reCAPTCHA service failed', 'wp-cerber' );
+		// --------------------------
 
 		$act[50] = __( 'Attempt to access prohibited URL', 'wp-cerber' );
 		$act[51] = __( 'Attempt to log in with non-existing username', 'wp-cerber' );
 		$act[52] = __( 'Attempt to log in with prohibited username', 'wp-cerber' );
 
 		// WP Cerber's actions - denied
-		$act[ CRB_EV_LFL ] = __( 'Attempt to log in denied', 'wp-cerber' );
+		$act[ CRB_EV_LDN ] = __( 'Attempt to log in denied', 'wp-cerber' );
 		$act[54] = __( 'Attempt to register denied', 'wp-cerber' );
 		$act[55] = __( 'Probing for vulnerable code', 'wp-cerber' );
 		$act[56] = __( 'Attempt to upload malicious file denied', 'wp-cerber' );
@@ -1606,6 +1617,7 @@ function cerber_get_labels( $type = 'activity' ) {
 		$act[100] = __( 'Malicious request denied', 'wp-cerber' );
 
 		// APIs
+		$act[149] = __( 'User application password updated', 'wp-cerber' );
 		$act[150] = __( 'User application password created', 'wp-cerber' );
 		$act[151] = __( 'API request authorized', 'wp-cerber' );
 		$act[152] = __( 'API request authorization failed', 'wp-cerber' );
@@ -1622,7 +1634,7 @@ function cerber_get_labels( $type = 'activity' ) {
 
 		$sts = &$labels['status'];
 
-		$sts[11] = __( 'Bot detected', 'wp-cerber' );
+		$sts[CRB_STS_11] = __( 'Bot detected', 'wp-cerber' );
 		$sts[12] = __( 'Citadel mode is active', 'wp-cerber' );
 		$sts[13] = __( 'Locked out', 'wp-cerber' );
 		$sts[13] = __( 'IP address is locked out', 'wp-cerber' );
@@ -1638,12 +1650,12 @@ function cerber_get_labels( $type = 'activity' ) {
 		$sts[22] = __( 'Malicious code detected', 'wp-cerber' );
 		$sts[23] = __( 'Suspicious SQL code detected', 'wp-cerber' );
 		$sts[24] = __( 'Suspicious JavaScript code detected', 'wp-cerber' );
-		$sts[25] = __( 'Blocked by administrator', 'wp-cerber' );
+		$sts[CRB_STS_25] = __( 'Blocked by administrator', 'wp-cerber' );
 		$sts[26] = __( 'Site policy enforcement', 'wp-cerber' );
 		$sts[27] = __( '2FA code verified', 'wp-cerber' );
 		$sts[28] = __( 'Initiated by the user', 'wp-cerber' );
-
-		$sts[30] = 'Username is prohibited';
+		$sts[CRB_STS_29] = __( 'User blocked by administrator', 'wp-cerber' );
+		$sts[CRB_STS_30] = __( 'Username is prohibited', 'wp-cerber' );
 		$sts[31] = __( 'Email address is prohibited', 'wp-cerber' );
 		$sts[32] = 'User role is prohibited';
 		$sts[33] = __( 'Permission denied', 'wp-cerber' );
@@ -1669,6 +1681,14 @@ function cerber_get_labels( $type = 'activity' ) {
 		$sts[511] = $sts[500]; // DS
 		$sts[512] = $sts[500]; // DS
 
+		// @since 8.9.4
+		$sts[530] = __( 'Logged out everywhere', 'wp-cerber' );
+
+		$sts[531] = __( 'reCAPTCHA verified', 'wp-cerber' );
+		$sts[CRB_STS_532] = __( 'reCAPTCHA verification failed', 'wp-cerber' );
+		$sts[533] = __( 'reCAPTCHA settings are incorrect', 'wp-cerber' );
+		$sts[534] = __( 'Request to the Google reCAPTCHA service failed', 'wp-cerber' );
+
 		cerber_cache_set( 'labels', $labels );
 	}
 
@@ -1692,19 +1712,19 @@ function crb_get_activity_set( $slice = 'malicious', $implode = false ) {
 
 	switch ( $slice ) {
 		case 'malicious':
-			$ret = array( 16, 17, 40, 50, 51, 52, CRB_EV_LFL, 54, 55, 56, 100 );
+			$ret = array( 16, 17, CRB_EV_PRD, 40, 50, 51, 52, CRB_EV_LDN, 54, 55, 56, 100 );
 			break;
 		case 'black': // Like 'malicious' but will cause an IP lockout when hit the limit
-			$ret = array( 16, 17, 40, 50, 51, 52, CRB_EV_LFL, 55, 56, 100, 300 );
+			$ret = array( 16, 17, 40, 50, 51, 52, CRB_EV_LDN, 55, 56, 100, 300 );
 			break;
 		case 'suspicious': // Uses when an admin inspects logs with filter_set = 1
-			$ret = array( 10, 11, 16, 17, 40, 50, 51, 52, CRB_EV_LFL, 54, 55, 56, 57, 100, 70, 71, 72, 73, 74, 75, 76, 300 );
+			$ret = array( 10, 11, 16, 17, CRB_EV_PRD, 40, 50, 51, 52, CRB_EV_LDN, 54, 55, 56, 57, 100, 70, 71, 72, 73, 74, 75, 76, 300 );
 			break;
 		case 'dashboard': // Important events for the plugin dashboard
-			$ret = array( 1, 2, 3, 5, 12, 16, 17, 18, 19, 22, 40, 41, 42, 50, 51, 52, CRB_EV_LFL, 54, 55, 56, 57, 72, 73, 74, 75, 76, 100, 150, 200, 300, 400 );
+			$ret = array( 1, 2, 3, 5, 12, 16, 17, 18, 19, 22, 40, 41, 42, 50, 51, 52, CRB_EV_LDN, 54, 55, 56, 57, 72, 73, 74, 75, 76, 100, 149, 150, 200, 300, 400 );
 			break;
 		case 'login_issues':
-			$ret = array( 7, 21, 51, 52, CRB_EV_LFL, 152 );
+			$ret = array( CRB_EV_LFL, CRB_EV_PRS, CRB_EV_PRD, 51, 52, CRB_EV_LDN, 152 );
 			break;
 		case 'blocked': // IP or subnet was blocked
 			$ret = array( 10, 11 );
@@ -1765,7 +1785,7 @@ function cerber_db_error_log( $errors = array() ) {
 			$errors = array( array( $wpdb->last_error, $wpdb->last_query, microtime( true ) ) );
 		}
 
-		if ( $others = cerber_db_get_errors( true ) ) {
+		if ( $others = cerber_db_get_errors( true, false ) ) {
 			$errors = array_merge( $errors, $others );
 		}
 	}
@@ -1782,6 +1802,7 @@ function cerber_db_error_log( $errors = array() ) {
 }
 
 /**
+ * Add admin error message(s) to be displayed in the dashboard
  *
  * @param string|array $msg
  */
@@ -1798,9 +1819,8 @@ function cerber_admin_message( $msg ) {
 }
 
 function crb_admin_add_msg( $msg, $type = 'admin_message' ) {
-	global $cerber_doing_upgrade;
 
-	if ( ! $msg || $cerber_doing_upgrade ) {
+	if ( ! $msg || CRB_Globals::$doing_upgrade ) {
 		return;
 	}
 
@@ -2191,23 +2211,32 @@ function cerber_real_escape( $str ) {
 }
 
 /**
- * @param false $erase
+ * @param bool $erase
+ * @param bool $flat If true returns an array of error messages, otherwise a multidimensional array
  *
  * @return array
  */
-function cerber_db_get_errors( $erase = false ) {
-	global $cerber_db_errors;
+function cerber_db_get_errors( $erase = false, $flat = true ) {
 
-	if ( ! isset( $cerber_db_errors ) ) {
-		$cerber_db_errors = array();
+	if ( ! isset( CRB_Globals::$db_errors ) ) {
+		CRB_Globals::$db_errors = array();
 	}
 
-	if ( ! $erase ) {
-		return $cerber_db_errors;
+	$ret = CRB_Globals::$db_errors;
+
+	if ( $erase ) {
+		CRB_Globals::$db_errors = array();
 	}
 
-	$ret = $cerber_db_errors;
-	$cerber_db_errors = array();
+	if ( $flat ) {
+		$ret = array_map( function ( $e ) {
+			if ( is_array( $e ) ) {
+				return implode( ' ', $e );
+			}
+
+			return $e;
+		}, $ret );
+	}
 
 	return $ret;
 }
@@ -2223,7 +2252,7 @@ function cerber_db_get_errors( $erase = false ) {
  * @since 6.0
  */
 function cerber_db_query( $query ) {
-	global $wpdb, $cerber_db_errors, $cerber_db_requests;
+	global $wpdb;
 
 	$db = cerber_get_db();
 
@@ -2231,7 +2260,7 @@ function cerber_db_query( $query ) {
 	     || empty( $db->dbh )
 	     || ! ( $db->dbh instanceof MySQLi ) ) {
 
-		$cerber_db_errors[] = 'No active DB handler. Query: ' . $query;
+		CRB_Globals::$db_errors[] = 'No active DB handler. Query: ' . $query;
 
 		return false;
 	}
@@ -2246,7 +2275,7 @@ function cerber_db_query( $query ) {
 	if ( ! $ret = mysqli_query( $db->dbh, $query ) ) {
 		$err = mysqli_error( $db->dbh );
 		if ( $err ) {
-			$cerber_db_errors[] = array( $err, $query, microtime( true ) );
+			CRB_Globals::$db_errors[] = array( $err, $query, microtime( true ) );
 		}
 	}
 
@@ -2260,7 +2289,7 @@ function cerber_db_query( $query ) {
 		}
 
 		$stat = array( $query, $elapsed, $backtrace, $started, array( $err ) );
-		$cerber_db_requests[] = $stat;
+		CRB_Globals::$db_requests[] = $stat;
 
 		$wpdb->queries[] = $stat;
 	}
@@ -2448,11 +2477,11 @@ function cerber_db_prepare( $table, $field, &$value ) {
  * @return bool|wpdb
  */
 function cerber_get_db() {
-	global $wpdb, $cerber_db_errors;
+	global $wpdb;
 	static $db;
 
-	if ( ! isset( $cerber_db_errors ) ) {
-		$cerber_db_errors = array();
+	if ( ! isset( CRB_Globals::$db_errors ) ) {
+		CRB_Globals::$db_errors = array();
 	}
 
 	if ( empty( $db )
@@ -2463,7 +2492,7 @@ function cerber_get_db() {
 		     || empty( $wpdb->dbh )
 		     || ! ( $wpdb->dbh instanceof MySQLi ) ) {
 			if ( ! $db = cerber_db_connect() ) {
-				$cerber_db_errors[] = 'Unable to connect to the DB';
+				CRB_Globals::$db_errors[] = 'Unable to connect to the DB';
 
 				return false;
 			}
@@ -2864,7 +2893,6 @@ function crb_update_cookie_dependent() {
 		return;
 	}
 
-	//add_action( 'init', function () {
 	register_shutdown_function( function () {
 		cerber_htaccess_sync( 'main' ); // keep the .htaccess rule is up to date
 	} );
@@ -3180,6 +3208,17 @@ function cerber_get_extension( $file_name ) {
 }
 
 /**
+ * True if version of WP is equal or greater than specified one
+ *
+ * @param string $ver
+ *
+ * @return bool|int
+ */
+function crb_wp_version_compare( $ver ) {
+	return version_compare( cerber_get_wp_version(), $ver, '>=' );
+}
+
+/**
  * Returns an unaltered $wp_version variable
  *
  * @return string WordPress version
@@ -3188,7 +3227,6 @@ function cerber_get_wp_version() {
 	static $ver;
 
 	if ( ! $ver ) {
-		global $wp_version;
 		include( ABSPATH . WPINC . DIRECTORY_SEPARATOR . 'version.php' );
 		$ver = $wp_version;
 	}
@@ -3364,7 +3402,7 @@ function cerber_diag_log( $msg, $source = '', $error = false ) {
 
 	foreach ( $msg as $line ) {
 		if ( is_array( $line ) ) {
-			$line = print_r( $line, 1 ); // workaround for $cerber_db_errors
+			$line = print_r( $line, 1 ); // workaround for CRB_Globals::$db_errors
 		}
 		//$ret = @fwrite( $log, '[' .cerber_get_remote_ip(). '][' . cerber_date( time() ) . ']' . $source . ' ' . $line . PHP_EOL );
 		$ret = @fwrite( $log, '[' . cerber_date( time(), false ) . ']' . $source . ' ' . $line . PHP_EOL );
@@ -4060,4 +4098,34 @@ function crb_get_table_hash( $table, $hash_fields, $order_by ) {
 	}
 
 	return $hashes[ $key ];
+}
+
+/**
+ * A replacement for global PHP variables. It doesn't make them good (less ugly), but it helps to trace their usage easily (within IDE).
+ *
+ * @since 8.9.4
+ *
+ */
+class CRB_Globals {
+	static $session_status;
+	static $act_status;
+	static $do_not_log = array();
+	static $reset_pwd_msg;
+	static $reset_pwd_denied = false;
+	static $user_id;
+	static $req_status = 0;
+	static $assets_url = '';
+	static $ajax_loader = '';
+	static $logged;
+	static $blocked;
+	static $db_requests = array();
+	static $db_errors = array();
+	static $bot_status = 0;
+
+	static $doing_upgrade;
+
+	static function set_bot_status( $val ) {
+		self::$bot_status = $val;
+		self::$act_status = $val; // For backward compatibility
+	}
 }

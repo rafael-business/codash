@@ -66,7 +66,6 @@ class CRB_Master {
 	public $error;
 
 	final function __construct() {
-		global $crb_assets_url, $crb_ajax_loader;
 
 		$fields = nexus_get_fields();
 		if ( ! $payload = cerber_get_post( $fields[1] ) ) {
@@ -100,8 +99,8 @@ class CRB_Master {
 			}
 		}
 
-		$crb_assets_url   = $request['assets'];
-		$crb_ajax_loader = $crb_assets_url . 'ajax-loader.gif';
+		CRB_Globals::$assets_url  = $request['assets'];
+		CRB_Globals::$ajax_loader = CRB_Globals::$assets_url . 'ajax-loader.gif';
 
 		if ( $this->type == 'ajax' ) {
 			if ( ! $this->action = crb_array_get( $request['params'], 'action' ) ) {

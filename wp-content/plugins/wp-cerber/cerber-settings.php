@@ -824,6 +824,7 @@ function cerber_settings_config( $args = array() ) {
 				),
 				'tiipwhite' => array(
 					'title'   => __( 'Use White IP Access List', 'wp-cerber' ),
+					'label' => __( 'Use less restrictive security filters for IP addresses in the White IP Access List', 'wp-cerber' ),
 					'type'    => 'checkbox',
 					'enabler' => array( 'tienabled', '[1,2]' ),
 				),
@@ -1284,6 +1285,11 @@ function cerber_settings_config( $args = array() ) {
 					'label' => __( 'Disable bot detection engine for logged-in users', 'wp-cerber' ),
 					'type'  => 'checkbox',
 				),
+				'botsipwhite' => array(
+					'title' => __( 'Use White IP Access List', 'wp-cerber' ),
+					'label' => __( 'Disable bot detection engine for IP addresses in the White IP Access List', 'wp-cerber' ),
+					'type'  => 'checkbox',
+				),
 				'botswhite'  => array(
 					'title'     => __( 'Query whitelist', 'wp-cerber' ),
 					'label'     => __( 'Enter a part of query string or query path to exclude a request from inspection by the engine. One item per line.', 'wp-cerber' ),
@@ -1361,13 +1367,19 @@ function cerber_settings_config( $args = array() ) {
 					'type'  => 'checkbox',
 				),
 				'recapcom'      => array(
-					'title' => __( 'Anti-spam', 'wp-cerber' ),
+					'title' => __( 'Comment form', 'wp-cerber' ),
 					'label' => __( 'Enable reCAPTCHA for WordPress comment form', 'wp-cerber' ),
 					'type'  => 'checkbox',
 				),
-				'recapcomauth'  => array(
-					'title' => '',
-					'label' => __( 'Disable reCAPTCHA for logged-in users', 'wp-cerber' ),
+				'recapcomauth' => array(
+					'title'   => '',
+					'label'   => __( 'Disable reCAPTCHA for logged-in users', 'wp-cerber' ),
+					'enabler' => array( 'recapcom' ),
+					'type'    => 'checkbox',
+				),
+				'recapipwhite'   => array(
+					'title' => __( 'Use White IP Access List', 'wp-cerber' ),
+					'label' => __( 'Disable reCAPTCHA for IP addresses in the White IP Access List', 'wp-cerber' ),
 					'type'  => 'checkbox',
 				),
 				'recaplimit'    => array(
@@ -1522,6 +1534,11 @@ function crb_get_activity_dd( $first = '' ) {
 	unset( $labels[151] );
 	unset( $labels[152] );
 
+	// Not in use and replaced by statuses 532 - 534 since 8.9.4.
+	unset( $labels[40] );
+	unset( $labels[41] );
+	unset( $labels[42] );
+
 	asort( $labels );
 
 	if ( ! $first ) {
@@ -1550,9 +1567,9 @@ function crb_get_activity_dd( $first = '' ) {
 function cerber_normalize( $values, $group ) {
 	$def = cerber_get_defaults();
 	if ( isset( $def[ $group ] ) ) {
-		$keys  = array_keys( $def[ $group ] );
+		$keys = array_keys( $def[ $group ] );
 		$empty = array_fill_keys( $keys, '' );
-		$values   = array_merge( $empty, $values );
+		$values = array_merge( $empty, $values );
 	}
 
 	return $values;
@@ -1725,14 +1742,15 @@ function cerber_get_defaults( $setting = null ) {
 			'pdata_act'      => 0,
 			'pdata_trf'      => array(),
 		),
-		CERBER_OPT_A  => array(
-			'botscomm'   => 1,
-			'botsreg'    => 0,
-			'botsany'    => 0,
-			'botssafe'   => 0,
-			'botsnoauth' => 1,
-			'customcomm' => 0,
-			'botswhite'  => '',
+		CERBER_OPT_A => array(
+			'botscomm'    => 1,
+			'botsreg'     => 0,
+			'botsany'     => 0,
+			'botssafe'    => 0,
+			'botsnoauth'  => 1,
+			'botsipwhite' => '1',
+			'customcomm'  => 0,
+			'botswhite'   => '',
 
 			'spamcomm'           => 0,
 			'trashafter'         => 7,
@@ -1749,7 +1767,8 @@ function cerber_get_defaults( $setting = null ) {
 			'recapwoolost'     => 0,
 			'recapwooreg'      => 0,
 			'recapcom'         => 0,
-			'recapcomauth'     => 0,
+			'recapcomauth'     => 1,
+			'recapipwhite'     => 0,
 			'recaptcha-period' => 60,
 			'recaptcha-number' => 3,
 			'recaptcha-within' => 30,

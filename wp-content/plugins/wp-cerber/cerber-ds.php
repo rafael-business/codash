@@ -381,21 +381,20 @@ final class CRB_DS {
 	 * @return bool true if this operation is permitted
 	 */
 	private static function acc_new( $user_id ) {
-		global $cerber_act_status;
 
-		$set                = crb_get_settings();
+		$set = crb_get_settings();
 		self::$user_blocked = false;
 
 		// Due to lack of a hook in the wp_insert_user() we are forced to check permissions and use wp_delete_user() after the user was created
 		if ( ! is_user_logged_in() ) {
 			if ( ! crb_user_has_role_strict( $set['ds_regs_roles'], $user_id ) ) {
-				$cerber_act_status      = 32;
+				CRB_Globals::$act_status = 32;
 				self::$user_blocked = true;
 			}
 		}
 		else {
 			if ( ! cerber_user_has_role( $set['ds_add_acc'] ) ) {
-				$cerber_act_status      = 33;
+				CRB_Globals::$act_status = 33;
 				self::$user_blocked = true;
 			}
 		}
@@ -425,7 +424,7 @@ final class CRB_DS {
 	 * @return bool true if this operation is permitted
 	 */
 	private static function acc_update( $user_id, $data ) {
-		global $cerber_act_status, $wpdb;
+		global $wpdb;
 
 		$cid = get_current_user_id();
 
@@ -459,7 +458,7 @@ final class CRB_DS {
 				// Protect the user's row in the users table
 				add_filter( 'query', 'crb_empty_query', PHP_INT_MAX );
 				add_filter( 'pre_get_col_charset', 'crb_return_wp_error', PHP_INT_MAX );
-				$cerber_act_status = ( ! $cid ) ? 34 : 33;
+				CRB_Globals::$act_status = ( ! $cid ) ? 34 : 33;
 				cerber_log( 73 );
 			}
 
@@ -499,12 +498,11 @@ final class CRB_DS {
 	 * @return bool
 	 */
 	static function update_user_meta( $user_id, $meta_key, $meta_value ) {
-		global $cerber_act_status;
 
 		// A user is not permitted to be created or updated?
 		if ( self::$user_blocked ) {
 			if ( self::is_meta_protected( $meta_key ) ) { // User roles are here
-				$cerber_act_status = ( ! is_user_logged_in() ) ? 34 : 33;
+				CRB_Globals::$act_status = ( ! is_user_logged_in() ) ? 34 : 33;
 				cerber_log( 76 );
 				self::$no_user_meta_shadow = '';
 
@@ -590,7 +588,6 @@ final class CRB_DS {
 	 * @return mixed The old value if update is not permitted
 	 */
 	static function setting_processor( &$value, $option, &$old_value ) {
-		global $cerber_act_status;
 
 		if ( empty( self::get_protected_settings()[3][ $option ] ) ) {
 			return $value;
@@ -617,7 +614,7 @@ final class CRB_DS {
 		$roles = crb_get_settings( 'ds_4opts_roles' );
 
 		if ( ! $roles || ! cerber_user_has_role( $roles ) ) {
-			$cerber_act_status = ( is_user_logged_in() ) ? 33 : 34;
+			CRB_Globals::$act_status = ( is_user_logged_in() ) ? 33 : 34;
 			cerber_log( 75 );
 
 			return $old_value;
@@ -629,7 +626,6 @@ final class CRB_DS {
 	}
 
 	static function role_processor( &$value, $option, &$old_value ) {
-		global $cerber_act_status;
 
 		if ( ! is_array( $value )
 		     || ( substr( $option, - 11 ) != '_user_roles' ) ) {
@@ -640,11 +636,11 @@ final class CRB_DS {
 			return $value;
 		}
 
-		$cerber_act_status = 0;
+		CRB_Globals::$act_status = 0;
 
 		if ( ! self::role_update_permitted( $value, $old_value ) ) {
-			if ( ! $cerber_act_status ) {
-				$cerber_act_status = ( is_user_logged_in() ) ? 33 : 34;
+			if ( ! CRB_Globals::$act_status ) {
+				CRB_Globals::$act_status = ( is_user_logged_in() ) ? 33 : 34;
 			}
 			cerber_log( 74 );
 

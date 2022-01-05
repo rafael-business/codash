@@ -34,9 +34,9 @@
 const UIS_LOADER_HTML = '<div class="uis_loader_wrapper"><div class="uis_page_loader"></div></div>';
 
 add_action( 'admin_init', function () {
-	global $crb_assets_url, $crb_ajax_loader;
-	$crb_assets_url  = cerber_plugin_dir_url() . 'assets/';
-	$crb_ajax_loader = $crb_assets_url . 'ajax-loader.gif';
+
+    CRB_Globals::$assets_url  = cerber_plugin_dir_url() . 'assets/';
+	CRB_Globals::$ajax_loader = CRB_Globals::$assets_url . 'ajax-loader.gif';
 
 	if ( cerber_is_wp_ajax() ) {
 		return;
@@ -317,7 +317,6 @@ function cerber_manual_scan() {
  *
  */
 add_action( 'wp_ajax_cerber_view_file', function () {
-	global $crb_assets_url;
 
 	cerber_check_ajax_permissions();
 
@@ -391,7 +390,7 @@ add_action( 'wp_ajax_cerber_view_file', function () {
 	}
 
 	//$sh_url   = plugin_dir_url( __FILE__ ) . 'assets/sh/';
-	$sh_url = $crb_assets_url . 'sh/';
+	$sh_url = CRB_Globals::$assets_url . 'sh/';
 	$sheight = absint( $get['sheight'] ) - 100; // highlighter is un-responsible, so we need tell him the real height
 
 	?>

@@ -158,7 +158,6 @@ function cerber_show_admin_page( $title, $tabs = array(), $active_tab = null, $r
 	Displays lockouts in the Dashboard
 */
 function cerber_show_lockouts( $args = array(), $echo = true ) {
-	global $crb_ajax_loader;
 
 	//$wp_cerber->deleteGarbage();
 
@@ -481,11 +480,11 @@ function cerber_admin_ajax() {
 			    }
 			    break;
 		    case 'cbfl':
-			    $base = cerber_activity_link( array( 7 ) );
+			    $base = cerber_activity_link( array( CRB_EV_LFL ) );
 			    foreach ( $list as $user_id ) {
 				    $u = get_userdata( $user_id );
 				    $val = 0;
-				    $failed = cerber_db_get_var( 'SELECT COUNT(user_id) FROM ' . CERBER_LOG_TABLE . ' WHERE ( user_login = "' . $u->user_login . '" OR user_login = "' . $u->user_email . '" ) AND activity = 7 AND stamp > ' . ( time() - 24 * 3600 ) );
+				    $failed = cerber_db_get_var( 'SELECT COUNT(user_id) FROM ' . CERBER_LOG_TABLE . ' WHERE ( user_login = "' . $u->user_login . '" OR user_login = "' . $u->user_email . '" ) AND activity = ' . CRB_EV_LFL . ' AND stamp > ' . ( time() - 24 * 3600 ) );
 				    if ( $failed ) {
 					    $val = '<a href="' . $base . '&amp;filter_login=' . $u->user_email . '|' . $u->user_login . '">' . $failed . '</a>';
 				    }
@@ -572,9 +571,8 @@ add_action( 'wp_ajax_cerber_local_ajax', function () {
  * @return string
  */
 function crb_get_ajax_placeholder( $group, $item_id ) {
-	global $crb_ajax_loader;
 
-	return '<img class="crb-ajax-load" data-ajax_group="' . $group . '" data-item_id="' . $item_id . '" src="' . $crb_ajax_loader . '" />';
+	return '<img class="crb-ajax-load" data-ajax_group="' . $group . '" data-item_id="' . $item_id . '" src="' . CRB_Globals::$ajax_loader . '" />';
 }
 
 /*
@@ -816,6 +814,7 @@ function cerber_admin_request( $is_post = false ) {
 					if ( ( strlen( $lic ) == LAB_KEY_LENGTH ) || empty( $lic ) ) {
 						lab_cleanup_cache();
 						cerber_delete_expired_set( true );
+						lab_get_site_meta();
 
 						lab_update_key( $lic );
 
@@ -1164,7 +1163,6 @@ function crb_make_nav_links( $link_list, $tab = 'activity', $class = '' ) {
  *
  */
 function cerber_show_activity( $args = array(), $echo = true ) {
-	global $crb_ajax_loader;
 
 	$labels        = cerber_get_labels( 'activity' );
 	$status_labels = cerber_get_labels( 'status' ) + cerber_get_reason();
@@ -1267,7 +1265,19 @@ function cerber_show_activity( $args = array(), $echo = true ) {
 
 			$ip_id = cerber_get_id_ip( $row->ip );
 
-			$activity = '<span class="crb-activity actv' . $row->activity . '" title="' . $row->activity . '">' . $labels[ $row->activity ] . '</span>';
+			// TODO refactor this: not as an IF exception
+			if ( $row->activity == 22
+			     && $row->ac_by_user
+			     && $row->user != $row->ac_by_user
+			     && $by_user = get_userdata( $row->ac_by_user ) ) {
+				/* translators: %s is the name of a website administrator who terminated the session. */
+				$ac_label = sprintf( __( 'User session terminated by %s', 'wp-cerber' ), '<a href="' . get_edit_user_link( $row->ac_by_user ) . '">' . $by_user->display_name . '</a>' );
+			}
+			else {
+				$ac_label = $labels[ $row->activity ];
+			}
+
+			$activity = '<span class="crb-activity actv' . $row->activity . '" title="' . $row->activity . '">' . $ac_label . '</span>';
 
 			if ( empty( $args['no_details'] ) && $row->details ) {
 				$details = explode( '|', $row->details );
@@ -1956,9 +1966,11 @@ add_filter( 'manage_users_sortable_columns', function ( $sortable_columns ) {
 	Display custom columns on the Users screen
 */
 add_filter( 'manage_users_custom_column', function ( $value, $column, $user_id ) {
-	global $wpdb, $user_ID, $crb_ajax_loader;
-	$ret = $value;
-	switch ( $column ) {
+	global $wpdb, $user_ID;
+
+    $ret = $value;
+
+    switch ( $column ) {
 		case 'cbcc' : // to get this work we need add filter 'preprocess_comment'
 			if ( $com = get_comments( array( 'author__in' => $user_id ) ) ) {
 				$ret = count( $com );
@@ -2029,8 +2041,8 @@ function cerber_quick_w(){
 
 	$s_count = cerber_db_get_var('SELECT COUNT(DISTINCT user_id) FROM '. cerber_get_db_prefix() . CERBER_USS_TABLE );
 
-	$failed = cerber_db_get_var('SELECT count(ip) FROM '. CERBER_LOG_TABLE .' WHERE activity IN (7) AND stamp > '.(time() - 24 * 3600));
-	$failed_prev = cerber_db_get_var('SELECT count(ip) FROM '. CERBER_LOG_TABLE .' WHERE activity IN (7) AND stamp > '.(time() - 48 * 3600).' AND stamp < '.(time() - 24 * 3600));
+	$failed = cerber_db_get_var( 'SELECT count(ip) FROM ' . CERBER_LOG_TABLE . ' WHERE activity IN (' . CRB_EV_LFL . ') AND stamp > ' . ( time() - 24 * 3600 ) );
+	$failed_prev = cerber_db_get_var( 'SELECT count(ip) FROM ' . CERBER_LOG_TABLE . ' WHERE activity IN (' . CRB_EV_LFL . ') AND stamp > ' . ( time() - 48 * 3600 ) . ' AND stamp < ' . ( time() - 24 * 3600 ) );
 
 	$failed_ch = cerber_percent($failed_prev,$failed);
 
@@ -2063,7 +2075,7 @@ function cerber_quick_w(){
 
 	echo '<div class="cerber-widget">';
 
-	echo '<table style="width:100%;"><tr><td style="width:50%; vertical-align:top;"><table><tr><td class="bigdig">'.$failed.'</td><td class="per">'.$failed_ch.'</td></tr></table><p>'.__('failed attempts','wp-cerber').' '.__('in 24 hours','wp-cerber').'<br/>(<a href="'.$act.'&filter_activity=7">'.__('view all','wp-cerber').'</a>)</p></td>';
+	echo '<table style="width:100%;"><tr><td style="width:50%; vertical-align:top;"><table><tr><td class="bigdig">' . $failed . '</td><td class="per">' . $failed_ch . '</td></tr></table><p>' . __( 'failed attempts', 'wp-cerber' ) . ' ' . __( 'in 24 hours', 'wp-cerber' ) . '<br/>(<a href="' . $act . '&filter_activity=' . CRB_EV_LFL . '">' . __( 'view all', 'wp-cerber' ) . '</a>)</p></td>';
 	echo '<td style="width:50%; vertical-align:top;"><table><tr><td class="bigdig">'.$locked.'</td><td class="per">'.$locked_ch.'</td></tr></table><p>'.__('lockouts','wp-cerber').' '.__('in 24 hours','wp-cerber').'<br/>(<a href="'.$act.'&filter_activity[]=10&filter_activity[]=11">'.__('view all','wp-cerber').'</a>)</p></td></tr></table>';
 
 	echo '<table id="quick-info"><tr><td>'.__('Lockouts at the moment','wp-cerber').'</td><td><b><a href="' . $locks . '">'.$lockouts.'</a></b></td></tr>';
@@ -2143,7 +2155,7 @@ function cerber_show_help() {
 }
 
 function cerber_show_nexus_help() {
-	global $crb_assets_url;
+
 	?>
     <div id="crb-help">
         <table id="admin-help">
@@ -2227,7 +2239,7 @@ function cerber_show_nexus_help() {
 }
 
 function cerber_show_scan_help() {
-	global $crb_assets_url;
+
 	?>
     <div id="crb-help">
         <table id="admin-help">
@@ -2378,7 +2390,7 @@ function cerber_show_scan_help() {
 }
 
 function cerber_show_anti_help() {
-	global $crb_assets_url;
+
 	?>
     <div id="crb-help">
         <table id="admin-help">
@@ -2431,7 +2443,6 @@ function cerber_show_anti_help() {
 }
 
 function cerber_show_general_help() {
-    global $crb_assets_url;
 
 	?>
 	<div id="crb-help">
@@ -2557,7 +2568,7 @@ function cerber_show_general_help() {
 
 			<a href="https://wordpress.org/plugins/plugin-inspector/">
 
-				<img src="<?php echo $crb_assets_url . 'inspector.png' ?>"
+				<img src="<?php echo CRB_Globals::$assets_url . 'inspector.png' ?>"
 				     style="float: left; width: 128px; margin-right: 20px;"/>
 			</a>
 			<h3>Plugin for inspecting code of plugins on your site: <a
@@ -2578,7 +2589,7 @@ function cerber_show_general_help() {
 
 		<div style="margin: 40px 0 40px 0;">
 			<a href="https://wordpress.org/plugins/goo-translate-widget/">
-				<img src="<?php echo $crb_assets_url . 'goo-translate.png' ?>"
+				<img src="<?php echo CRB_Globals::$assets_url . 'goo-translate.png' ?>"
 				     style="float: left; width: 128px; margin-right: 20px;"/>
 			</a>
 
@@ -2596,7 +2607,6 @@ function cerber_show_general_help() {
 }
 
 function cerber_help() {
-	global $crb_assets_url;
 
 	if ( lab_lab() ) {
 		$support = '<p style="margin: 2em 0 5em 0;">Submit a support ticket on our Help Desk: <a href="https://my.wpcerber.com/">https://my.wpcerber.com</a></p>';
@@ -2610,7 +2620,7 @@ function cerber_help() {
 
 	?>
 
-    <img style="width: 120px; float: left; margin-right: 30px; margin-bottom: 30px;" src="<?php echo $crb_assets_url . 'wrench.png' ?>"/>
+    <img style="width: 120px; float: left; margin-right: 30px; margin-bottom: 30px;" src="<?php echo CRB_Globals::$assets_url . 'wrench.png' ?>"/>
 
     <h3 style="font-size: 150%;">How to configure the plugin</h3>
 
@@ -2737,7 +2747,6 @@ function cerber_show_dashboard() {
 	Admin aside bar
 */
 function cerber_show_aside( $tab ) {
-	global $crb_assets_url;
 
 	if ( in_array( $tab, array( 'nexus_sites', 'activity', 'lockouts', 'traffic' ) ) ) {
 		return;
@@ -2758,7 +2767,7 @@ function cerber_show_aside( $tab ) {
 		$images = array( 'bn4ra.png', 'bn5ra.png' );
 		$d = (int) date( 'z' );
 		$n = ( $d & 1 ) ? 1 : 0;
-		$ban = $crb_assets_url . $images[ $n ];
+		$ban = CRB_Globals::$assets_url . $images[ $n ];
 
         $aside[] = '<a href="https://wpcerber.com/pro/" target="_blank"><img src="'.$ban.'" class="crb-full-width" /></a>';
 
@@ -2779,7 +2788,7 @@ function cerber_show_aside( $tab ) {
 		$r[0] = crb_get_review_url( 'tpilot' );
 		$r[1] = crb_get_review_url( 'wp' );
 		shuffle( $r );
-		$aside[] = '<a href="' . $r[0] . '" target="_blank"><img class="crb-full-width" src="' . $crb_assets_url . 'fb2b.png" /></a>';
+		$aside[] = '<a href="' . $r[0] . '" target="_blank"><img class="crb-full-width" src="' . CRB_Globals::$assets_url . 'fb2b.png" /></a>';
 	}
 
 	echo '<div id="crb-aside">' . implode( ' ', $aside ) . '</div>';
@@ -3090,9 +3099,10 @@ function cerber_admin_enqueue($hook) {
 
 add_action( 'admin_enqueue_scripts', 'cerber_admin_assets', 9999 );
 function cerber_admin_assets() {
-	global $crb_assets_url;
+
 	//$crb_assets_url = plugin_dir_url( __FILE__ ) . 'assets/';
 	//$crb_assets_url  = cerber_plugin_dir_url() . 'assets/';
+	$crb_assets_url = CRB_Globals::$assets_url;
 
 	if ( cerber_is_admin_page() ) {
 
@@ -3146,9 +3156,7 @@ function cerber_admin_assets() {
 add_action('admin_head', 'cerber_admin_head' );
 add_action('customize_controls_print_scripts', 'cerber_admin_head' ); // @since 5.8.1
 function cerber_admin_head() {
-	global $crb_assets_url, $crb_ajax_loader;
 
-	//$crb_ajax_loader = $crb_assets_url . 'ajax-loader.gif';
 	$crb_ajax_nonce  = wp_create_nonce( 'crb-ajax-admin' );
 
 	$crb_lab_available = ( lab_lab() ) ? 'true' : 'false';
@@ -3157,7 +3165,7 @@ function cerber_admin_head() {
 
     <script type="text/javascript">
         crb_ajax_nonce = '<?php echo $crb_ajax_nonce; ?>';
-        crb_ajax_loader = '<?php echo $crb_ajax_loader; ?>';
+        crb_ajax_loader = '<?php echo CRB_Globals::$ajax_loader; ?>';
         crb_lab_available = <?php echo $crb_lab_available; ?>;
     </script>
 
@@ -3661,12 +3669,12 @@ function crb_admin_geo_selector( $rule_id, $rule, $class = '' ) {
 			break;
 		case 'geo_restapi':
 			if ( $opt['norest'] ) {
-				$note = 'REST API is disabled in the Hardening settings of the plugin.';
+				$note = 'REST API is disabled in the Hardening settings of WP Cerber.';
 			}
 			break;
 		case 'geo_xmlrpc':
 			if ( $opt['xmlrpc'] ) {
-				$note = 'XML-RPC is disabled in the Hardening settings of the plugin.';
+				$note = 'XML-RPC is disabled in the Hardening settings of WP Cerber.';
 			}
 			break;
 	}
@@ -3995,7 +4003,7 @@ function cerber_export_traffic( $params = array() ) {
  *
  */
 function cerber_show_traffic( $args = array(), $echo = true ) {
-	global $wpdb, $crb_ajax_loader;
+	global $wpdb;
 
 	$labels = cerber_get_labels( 'activity' );
 	$status_labels = cerber_get_labels( 'status' ) + cerber_get_reason();

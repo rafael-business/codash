@@ -234,7 +234,6 @@ final class CRB_2FA {
      *
 	 */
 	static function restrict_and_verify( $user_id = null ) {
-	    global $cerber_act_status;
 		static $done = false;
 
 		if ( $done ) {
@@ -334,8 +333,7 @@ final class CRB_2FA {
 
 			self::delete_2fa( $user_id );
 
-			$cerber_act_status = 27;
-			cerber_log( 5, $twofactor['login'], $user_id );
+			cerber_log( 5, $twofactor['login'], $user_id, 27 );
 			cerber_login_history( $user_id, true );
 
 			cerber_2fa_checker( true );

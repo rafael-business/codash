@@ -78,7 +78,7 @@ function cerber_ip_whois_info( $ip ) {
 				$value = '<a href="mailto:' . $value . '">' . $value . '</a>';
 			}
 			elseif ( strtolower( $key ) == 'country' ) {
-				$value = cerber_get_flag_html( $value ) . '<b>' . cerber_country_name( $value ) . ' (' . $value . ')</b>';
+				$value = cerber_get_flag_html( $value, '<b>' . cerber_country_name( $value ) . ' (' . $value . ')</b>' );
 				$ret['country'] = $value;
 			}
 
@@ -213,12 +213,13 @@ function make_whois_request($server, $ip) {
  *
  */
 function cerber_get_flag_html( $code, $txt = '' ) {
-	global $crb_assets_url;
+
 	if ( ! $code ) {
 		return '';
 	}
 
-	return '<span class="crb-country" style="background: url(\'' . $crb_assets_url . 'flags/' . strtolower( $code ) . '.gif\') no-repeat left;">' . $txt . '</span>';
+	//return '<span class="crb-country" style="background: url(\'' . CRB_Globals::$assets_url . 'flags/' . strtolower( $code ) . '.gif\') no-repeat left;">' . $txt . '</span>';
+	return '<div class="crb-country-label"><img alt="' . $code . '" class="crb-country-flag" src="' . CRB_Globals::$assets_url . 'flags/' . strtolower( $code ) . '.png">' . $txt . '</div>';
 }
 /*
  *
@@ -272,10 +273,16 @@ function cerber_country_name( $code ) {
 
 function cerber_get_country_list() {
 	global $cerber_country_names;
+
 	$ret = array();
 	foreach ( $cerber_country_names as $code => $name ) {
 		$ret[ $code ] = cerber_country_name( $code );
 	}
+
+	// Remove non-countries
+
+	unset( $ret['EU'] );
+	unset( $ret['EZ'] );
 
 	return $ret;
 }

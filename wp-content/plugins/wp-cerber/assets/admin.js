@@ -7,7 +7,7 @@ jQuery(document).ready(function ($) {
 
     /* Select2 */
 
-    var crb_se2 = crb_admin.find('select.crb-select2-ajax');
+    let crb_se2 = crb_admin.find('select.crb-select2-ajax');
     if (crb_se2.length) {
         crb_se2.select2({
             allowClear: true,
@@ -61,7 +61,7 @@ jQuery(document).ready(function ($) {
 
 
     /* WP Comments page */
-    var comtable = 'table.wp-list-table.comments';
+    let comtable = 'table.wp-list-table.comments';
 
     if (typeof crb_lab_available !== 'undefined' && crb_lab_available && $(comtable).length) {
         $(comtable + " td.column-author").each(function (index) {
@@ -315,7 +315,7 @@ jQuery(document).ready(function ($) {
     // GEO
 
     $("form#crb-geo-rules .crb-geo-switcher").on('change', function () {
-        var to_show = '#crb-geo-wrap_' + $(this).data('rule-id');
+        let to_show = '#crb-geo-wrap_' + $(this).data('rule-id');
         if ($(this).val() !== '---first') {
             to_show += '_' + $(this).val()
         }
@@ -327,15 +327,15 @@ jQuery(document).ready(function ($) {
 
     // Search and highlighting pieces of text, case-sensitive
     function cerber_highlight_text(id, text, limit) {
-        var inputText = document.getElementById(id);
+        let inputText = document.getElementById(id);
         if (inputText === null) {
             return;
         }
 
-        var innerHTML = inputText.innerHTML;
-        var i = 0;
-        var list = [];
-        var index = innerHTML.indexOf(text);
+        let innerHTML = inputText.innerHTML;
+        let i = 0;
+        let list = [];
+        let index = innerHTML.indexOf(text);
         while (index >= 0 && i < limit) {
             list.push(index);
             index = innerHTML.indexOf(text, index + 1);

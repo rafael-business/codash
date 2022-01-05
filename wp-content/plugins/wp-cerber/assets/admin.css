@@ -1070,9 +1070,22 @@ td.crb-traffic-details table td:nth-child(2) {
     border-left: 4px solid rgba(0, 0, 0, .25);
 }
 
+/*
 .crb-country {
     padding-left: 24px;
     white-space: nowrap;
+}*/
+
+.crb-country-label {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.crb-country-flag {
+    width: 21px;
+    margin-right: 8px;
+    border: solid 1px #ececec;
 }
 
 /* Activity - new styles (improvements) */
@@ -1082,7 +1095,7 @@ td.crb-traffic-details table td:nth-child(2) {
     border-left: none;
     background-color: initial;
 }
-.crb12, .crb16, .crb17, .crb18, .crb19, .crb41, .crb42, .crb50, .crb51, .crb52, .crb53, .crb54, .crb55, .crb56, .crb57, .crb70, .crb71, .crb72, .crb73, .crb74, .crb75, .crb76, .crb100 {
+.crb12, .crb16, .crb17, .crb18, .crb19, .crb25, .crb41, .crb42, .crb50, .crb51, .crb52, .crb53, .crb54, .crb55, .crb56, .crb57, .crb70, .crb71, .crb72, .crb73, .crb74, .crb75, .crb76, .crb100 {
     border-left: 0.4em solid #FF5733;
     border-left: 0.4em solid #FF4633;
     padding-bottom: 2px;
@@ -2226,7 +2239,7 @@ table.crb-geo-rule td:first-child{
 }
 
 .multi-wrapper .item {
-    padding-left: 24px !important;
+    padding-left: 30px !important;
 }
 .multi-wrapper .item:hover {
     border-radius: 0 !important;
@@ -2456,1006 +2469,1010 @@ input:checked + .crb-slider:before {
 
 /* Flags */
 
+.multi-wrapper .item {
+    background-size: 20px auto;
+}
+
 a[data-value="AF"]{
-    background: url("flags/af.gif") no-repeat left;
+    background: url("flags/af.png") no-repeat left;
 }
 
 a[data-value="AL"]{
-    background: url("flags/al.gif") no-repeat left;
+    background: url("flags/al.png") no-repeat left;
 }
 
 a[data-value="AX"]{
-    background: url("flags/ax.gif") no-repeat left;
+    background: url("flags/ax.png") no-repeat left;
 }
 
 a[data-value="DZ"]{
-    background: url("flags/dz.gif") no-repeat left;
+    background: url("flags/dz.png") no-repeat left;
 }
 
 a[data-value="AS"]{
-    background: url("flags/as.gif") no-repeat left;
+    background: url("flags/as.png") no-repeat left;
 }
 
 a[data-value="AD"]{
-    background: url("flags/ad.gif") no-repeat left;
+    background: url("flags/ad.png") no-repeat left;
 }
 
 a[data-value="AO"]{
-    background: url("flags/ao.gif") no-repeat left;
+    background: url("flags/ao.png") no-repeat left;
 }
 
 a[data-value="AI"]{
-    background: url("flags/ai.gif") no-repeat left;
+    background: url("flags/ai.png") no-repeat left;
 }
 
 a[data-value="AQ"]{
-    background: url("flags/aq.gif") no-repeat left;
+    background: url("flags/aq.png") no-repeat left;
 }
 
 a[data-value="AG"]{
-    background: url("flags/ag.gif") no-repeat left;
+    background: url("flags/ag.png") no-repeat left;
 }
 
 a[data-value="AR"]{
-    background: url("flags/ar.gif") no-repeat left;
+    background: url("flags/ar.png") no-repeat left;
 }
 
 a[data-value="AM"]{
-    background: url("flags/am.gif") no-repeat left;
+    background: url("flags/am.png") no-repeat left;
 }
 
 a[data-value="AW"]{
-    background: url("flags/aw.gif") no-repeat left;
+    background: url("flags/aw.png") no-repeat left;
 }
 
 a[data-value="AU"]{
-    background: url("flags/au.gif") no-repeat left;
+    background: url("flags/au.png") no-repeat left;
 }
 
 a[data-value="AT"]{
-    background: url("flags/at.gif") no-repeat left;
+    background: url("flags/at.png") no-repeat left;
 }
 
 a[data-value="AZ"]{
-    background: url("flags/az.gif") no-repeat left;
+    background: url("flags/az.png") no-repeat left;
 }
 
 a[data-value="BS"]{
-    background: url("flags/bs.gif") no-repeat left;
+    background: url("flags/bs.png") no-repeat left;
 }
 
 a[data-value="BH"]{
-    background: url("flags/bh.gif") no-repeat left;
+    background: url("flags/bh.png") no-repeat left;
 }
 
 a[data-value="BD"]{
-    background: url("flags/bd.gif") no-repeat left;
+    background: url("flags/bd.png") no-repeat left;
 }
 
 a[data-value="BB"]{
-    background: url("flags/bb.gif") no-repeat left;
+    background: url("flags/bb.png") no-repeat left;
 }
 
 a[data-value="BY"]{
-    background: url("flags/by.gif") no-repeat left;
+    background: url("flags/by.png") no-repeat left;
 }
 
 a[data-value="BE"]{
-    background: url("flags/be.gif") no-repeat left;
+    background: url("flags/be.png") no-repeat left;
 }
 
 a[data-value="BZ"]{
-    background: url("flags/bz.gif") no-repeat left;
+    background: url("flags/bz.png") no-repeat left;
 }
 
 a[data-value="BJ"]{
-    background: url("flags/bj.gif") no-repeat left;
+    background: url("flags/bj.png") no-repeat left;
 }
 
 a[data-value="BM"]{
-    background: url("flags/bm.gif") no-repeat left;
+    background: url("flags/bm.png") no-repeat left;
 }
 
 a[data-value="BT"]{
-    background: url("flags/bt.gif") no-repeat left;
+    background: url("flags/bt.png") no-repeat left;
 }
 
 a[data-value="BO"]{
-    background: url("flags/bo.gif") no-repeat left;
+    background: url("flags/bo.png") no-repeat left;
 }
 
 a[data-value="BQ"]{
-    background: url("flags/bq.gif") no-repeat left;
+    background: url("flags/bq.png") no-repeat left;
 }
 
 a[data-value="BA"]{
-    background: url("flags/ba.gif") no-repeat left;
+    background: url("flags/ba.png") no-repeat left;
 }
 
 a[data-value="BW"]{
-    background: url("flags/bw.gif") no-repeat left;
+    background: url("flags/bw.png") no-repeat left;
 }
 
 a[data-value="BV"]{
-    background: url("flags/bv.gif") no-repeat left;
+    background: url("flags/bv.png") no-repeat left;
 }
 
 a[data-value="BR"]{
-    background: url("flags/br.gif") no-repeat left;
+    background: url("flags/br.png") no-repeat left;
 }
 
 a[data-value="IO"]{
-    background: url("flags/io.gif") no-repeat left;
+    background: url("flags/io.png") no-repeat left;
 }
 
 a[data-value="BN"]{
-    background: url("flags/bn.gif") no-repeat left;
+    background: url("flags/bn.png") no-repeat left;
 }
 
 a[data-value="BG"]{
-    background: url("flags/bg.gif") no-repeat left;
+    background: url("flags/bg.png") no-repeat left;
 }
 
 a[data-value="BF"]{
-    background: url("flags/bf.gif") no-repeat left;
+    background: url("flags/bf.png") no-repeat left;
 }
 
 a[data-value="BI"]{
-    background: url("flags/bi.gif") no-repeat left;
+    background: url("flags/bi.png") no-repeat left;
 }
 
 a[data-value="KH"]{
-    background: url("flags/kh.gif") no-repeat left;
+    background: url("flags/kh.png") no-repeat left;
 }
 
 a[data-value="CM"]{
-    background: url("flags/cm.gif") no-repeat left;
+    background: url("flags/cm.png") no-repeat left;
 }
 
 a[data-value="CA"]{
-    background: url("flags/ca.gif") no-repeat left;
+    background: url("flags/ca.png") no-repeat left;
 }
 
 a[data-value="CV"]{
-    background: url("flags/cv.gif") no-repeat left;
+    background: url("flags/cv.png") no-repeat left;
 }
 
 a[data-value="KY"]{
-    background: url("flags/ky.gif") no-repeat left;
+    background: url("flags/ky.png") no-repeat left;
 }
 
 a[data-value="CF"]{
-    background: url("flags/cf.gif") no-repeat left;
+    background: url("flags/cf.png") no-repeat left;
 }
 
 a[data-value="TD"]{
-    background: url("flags/td.gif") no-repeat left;
+    background: url("flags/td.png") no-repeat left;
 }
 
 a[data-value="CL"]{
-    background: url("flags/cl.gif") no-repeat left;
+    background: url("flags/cl.png") no-repeat left;
 }
 
 a[data-value="CN"]{
-    background: url("flags/cn.gif") no-repeat left;
+    background: url("flags/cn.png") no-repeat left;
 }
 
 a[data-value="CX"]{
-    background: url("flags/cx.gif") no-repeat left;
+    background: url("flags/cx.png") no-repeat left;
 }
 
 a[data-value="CC"]{
-    background: url("flags/cc.gif") no-repeat left;
+    background: url("flags/cc.png") no-repeat left;
 }
 
 a[data-value="CO"]{
-    background: url("flags/co.gif") no-repeat left;
+    background: url("flags/co.png") no-repeat left;
 }
 
 a[data-value="KM"]{
-    background: url("flags/km.gif") no-repeat left;
+    background: url("flags/km.png") no-repeat left;
 }
 
 a[data-value="CG"]{
-    background: url("flags/cg.gif") no-repeat left;
+    background: url("flags/cg.png") no-repeat left;
 }
 
 a[data-value="CD"]{
-    background: url("flags/cd.gif") no-repeat left;
+    background: url("flags/cd.png") no-repeat left;
 }
 
 a[data-value="CK"]{
-    background: url("flags/ck.gif") no-repeat left;
+    background: url("flags/ck.png") no-repeat left;
 }
 
 a[data-value="CR"]{
-    background: url("flags/cr.gif") no-repeat left;
+    background: url("flags/cr.png") no-repeat left;
 }
 
 a[data-value="CI"]{
-    background: url("flags/ci.gif") no-repeat left;
+    background: url("flags/ci.png") no-repeat left;
 }
 
 a[data-value="HR"]{
-    background: url("flags/hr.gif") no-repeat left;
+    background: url("flags/hr.png") no-repeat left;
 }
 
 a[data-value="CU"]{
-    background: url("flags/cu.gif") no-repeat left;
+    background: url("flags/cu.png") no-repeat left;
 }
 
 a[data-value="CW"]{
-    background: url("flags/cw.gif") no-repeat left;
+    background: url("flags/cw.png") no-repeat left;
 }
 
 a[data-value="CY"]{
-    background: url("flags/cy.gif") no-repeat left;
+    background: url("flags/cy.png") no-repeat left;
 }
 
 a[data-value="CZ"]{
-    background: url("flags/cz.gif") no-repeat left;
+    background: url("flags/cz.png") no-repeat left;
 }
 
 a[data-value="DK"]{
-    background: url("flags/dk.gif") no-repeat left;
+    background: url("flags/dk.png") no-repeat left;
 }
 
 a[data-value="DJ"]{
-    background: url("flags/dj.gif") no-repeat left;
+    background: url("flags/dj.png") no-repeat left;
 }
 
 a[data-value="DM"]{
-    background: url("flags/dm.gif") no-repeat left;
+    background: url("flags/dm.png") no-repeat left;
 }
 
 a[data-value="DO"]{
-    background: url("flags/do.gif") no-repeat left;
+    background: url("flags/do.png") no-repeat left;
 }
 
 a[data-value="EC"]{
-    background: url("flags/ec.gif") no-repeat left;
+    background: url("flags/ec.png") no-repeat left;
 }
 
 a[data-value="EG"]{
-    background: url("flags/eg.gif") no-repeat left;
+    background: url("flags/eg.png") no-repeat left;
 }
 
 a[data-value="SV"]{
-    background: url("flags/sv.gif") no-repeat left;
+    background: url("flags/sv.png") no-repeat left;
 }
 
 a[data-value="GQ"]{
-    background: url("flags/gq.gif") no-repeat left;
+    background: url("flags/gq.png") no-repeat left;
 }
 
 a[data-value="ER"]{
-    background: url("flags/er.gif") no-repeat left;
+    background: url("flags/er.png") no-repeat left;
 }
 
 a[data-value="EE"]{
-    background: url("flags/ee.gif") no-repeat left;
+    background: url("flags/ee.png") no-repeat left;
 }
 
 a[data-value="ET"]{
-    background: url("flags/et.gif") no-repeat left;
+    background: url("flags/et.png") no-repeat left;
 }
 
 a[data-value="EU"]{
-    background: url("flags/eu.gif") no-repeat left;
+    background: url("flags/eu.png") no-repeat left;
 }
 
 a[data-value="EZ"]{
-    background: url("flags/ez.gif") no-repeat left;
+    background: url("flags/ez.png") no-repeat left;
 }
 
 a[data-value="FK"]{
-    background: url("flags/fk.gif") no-repeat left;
+    background: url("flags/fk.png") no-repeat left;
 }
 
 a[data-value="FO"]{
-    background: url("flags/fo.gif") no-repeat left;
+    background: url("flags/fo.png") no-repeat left;
 }
 
 a[data-value="FJ"]{
-    background: url("flags/fj.gif") no-repeat left;
+    background: url("flags/fj.png") no-repeat left;
 }
 
 a[data-value="FI"]{
-    background: url("flags/fi.gif") no-repeat left;
+    background: url("flags/fi.png") no-repeat left;
 }
 
 a[data-value="FR"]{
-    background: url("flags/fr.gif") no-repeat left;
+    background: url("flags/fr.png") no-repeat left;
 }
 
 a[data-value="GF"]{
-    background: url("flags/gf.gif") no-repeat left;
+    background: url("flags/gf.png") no-repeat left;
 }
 
 a[data-value="PF"]{
-    background: url("flags/pf.gif") no-repeat left;
+    background: url("flags/pf.png") no-repeat left;
 }
 
 a[data-value="TF"]{
-    background: url("flags/tf.gif") no-repeat left;
+    background: url("flags/tf.png") no-repeat left;
 }
 
 a[data-value="GA"]{
-    background: url("flags/ga.gif") no-repeat left;
+    background: url("flags/ga.png") no-repeat left;
 }
 
 a[data-value="GM"]{
-    background: url("flags/gm.gif") no-repeat left;
+    background: url("flags/gm.png") no-repeat left;
 }
 
 a[data-value="GE"]{
-    background: url("flags/ge.gif") no-repeat left;
+    background: url("flags/ge.png") no-repeat left;
 }
 
 a[data-value="DE"]{
-    background: url("flags/de.gif") no-repeat left;
+    background: url("flags/de.png") no-repeat left;
 }
 
 a[data-value="GH"]{
-    background: url("flags/gh.gif") no-repeat left;
+    background: url("flags/gh.png") no-repeat left;
 }
 
 a[data-value="GI"]{
-    background: url("flags/gi.gif") no-repeat left;
+    background: url("flags/gi.png") no-repeat left;
 }
 
 a[data-value="GR"]{
-    background: url("flags/gr.gif") no-repeat left;
+    background: url("flags/gr.png") no-repeat left;
 }
 
 a[data-value="GL"]{
-    background: url("flags/gl.gif") no-repeat left;
+    background: url("flags/gl.png") no-repeat left;
 }
 
 a[data-value="GD"]{
-    background: url("flags/gd.gif") no-repeat left;
+    background: url("flags/gd.png") no-repeat left;
 }
 
 a[data-value="GP"]{
-    background: url("flags/gp.gif") no-repeat left;
+    background: url("flags/gp.png") no-repeat left;
 }
 
 a[data-value="GU"]{
-    background: url("flags/gu.gif") no-repeat left;
+    background: url("flags/gu.png") no-repeat left;
 }
 
 a[data-value="GT"]{
-    background: url("flags/gt.gif") no-repeat left;
+    background: url("flags/gt.png") no-repeat left;
 }
 
 a[data-value="GG"]{
-    background: url("flags/gg.gif") no-repeat left;
+    background: url("flags/gg.png") no-repeat left;
 }
 
 a[data-value="GN"]{
-    background: url("flags/gn.gif") no-repeat left;
+    background: url("flags/gn.png") no-repeat left;
 }
 
 a[data-value="GW"]{
-    background: url("flags/gw.gif") no-repeat left;
+    background: url("flags/gw.png") no-repeat left;
 }
 
 a[data-value="GY"]{
-    background: url("flags/gy.gif") no-repeat left;
+    background: url("flags/gy.png") no-repeat left;
 }
 
 a[data-value="HT"]{
-    background: url("flags/ht.gif") no-repeat left;
+    background: url("flags/ht.png") no-repeat left;
 }
 
 a[data-value="HM"]{
-    background: url("flags/hm.gif") no-repeat left;
+    background: url("flags/hm.png") no-repeat left;
 }
 
 a[data-value="VA"]{
-    background: url("flags/va.gif") no-repeat left;
+    background: url("flags/va.png") no-repeat left;
 }
 
 a[data-value="HN"]{
-    background: url("flags/hn.gif") no-repeat left;
+    background: url("flags/hn.png") no-repeat left;
 }
 
 a[data-value="HK"]{
-    background: url("flags/hk.gif") no-repeat left;
+    background: url("flags/hk.png") no-repeat left;
 }
 
 a[data-value="HU"]{
-    background: url("flags/hu.gif") no-repeat left;
+    background: url("flags/hu.png") no-repeat left;
 }
 
 a[data-value="IS"]{
-    background: url("flags/is.gif") no-repeat left;
+    background: url("flags/is.png") no-repeat left;
 }
 
 a[data-value="IN"]{
-    background: url("flags/in.gif") no-repeat left;
+    background: url("flags/in.png") no-repeat left;
 }
 
 a[data-value="ID"]{
-    background: url("flags/id.gif") no-repeat left;
+    background: url("flags/id.png") no-repeat left;
 }
 
 a[data-value="IR"]{
-    background: url("flags/ir.gif") no-repeat left;
+    background: url("flags/ir.png") no-repeat left;
 }
 
 a[data-value="IQ"]{
-    background: url("flags/iq.gif") no-repeat left;
+    background: url("flags/iq.png") no-repeat left;
 }
 
 a[data-value="IE"]{
-    background: url("flags/ie.gif") no-repeat left;
+    background: url("flags/ie.png") no-repeat left;
 }
 
 a[data-value="IM"]{
-    background: url("flags/im.gif") no-repeat left;
+    background: url("flags/im.png") no-repeat left;
 }
 
 a[data-value="IL"]{
-    background: url("flags/il.gif") no-repeat left;
+    background: url("flags/il.png") no-repeat left;
 }
 
 a[data-value="IT"]{
-    background: url("flags/it.gif") no-repeat left;
+    background: url("flags/it.png") no-repeat left;
 }
 
 a[data-value="JM"]{
-    background: url("flags/jm.gif") no-repeat left;
+    background: url("flags/jm.png") no-repeat left;
 }
 
 a[data-value="JP"]{
-    background: url("flags/jp.gif") no-repeat left;
+    background: url("flags/jp.png") no-repeat left;
 }
 
 a[data-value="JE"]{
-    background: url("flags/je.gif") no-repeat left;
+    background: url("flags/je.png") no-repeat left;
 }
 
 a[data-value="JO"]{
-    background: url("flags/jo.gif") no-repeat left;
+    background: url("flags/jo.png") no-repeat left;
 }
 
 a[data-value="KZ"]{
-    background: url("flags/kz.gif") no-repeat left;
+    background: url("flags/kz.png") no-repeat left;
 }
 
 a[data-value="KE"]{
-    background: url("flags/ke.gif") no-repeat left;
+    background: url("flags/ke.png") no-repeat left;
 }
 
 a[data-value="KI"]{
-    background: url("flags/ki.gif") no-repeat left;
+    background: url("flags/ki.png") no-repeat left;
 }
 
 a[data-value="KP"]{
-    background: url("flags/kp.gif") no-repeat left;
+    background: url("flags/kp.png") no-repeat left;
 }
 
 a[data-value="KR"]{
-    background: url("flags/kr.gif") no-repeat left;
+    background: url("flags/kr.png") no-repeat left;
 }
 
 a[data-value="KW"]{
-    background: url("flags/kw.gif") no-repeat left;
+    background: url("flags/kw.png") no-repeat left;
 }
 
 a[data-value="KG"]{
-    background: url("flags/kg.gif") no-repeat left;
+    background: url("flags/kg.png") no-repeat left;
 }
 
 a[data-value="LA"]{
-    background: url("flags/la.gif") no-repeat left;
+    background: url("flags/la.png") no-repeat left;
 }
 
 a[data-value="LV"]{
-    background: url("flags/lv.gif") no-repeat left;
+    background: url("flags/lv.png") no-repeat left;
 }
 
 a[data-value="LB"]{
-    background: url("flags/lb.gif") no-repeat left;
+    background: url("flags/lb.png") no-repeat left;
 }
 
 a[data-value="LS"]{
-    background: url("flags/ls.gif") no-repeat left;
+    background: url("flags/ls.png") no-repeat left;
 }
 
 a[data-value="LR"]{
-    background: url("flags/lr.gif") no-repeat left;
+    background: url("flags/lr.png") no-repeat left;
 }
 
 a[data-value="LY"]{
-    background: url("flags/ly.gif") no-repeat left;
+    background: url("flags/ly.png") no-repeat left;
 }
 
 a[data-value="LI"]{
-    background: url("flags/li.gif") no-repeat left;
+    background: url("flags/li.png") no-repeat left;
 }
 
 a[data-value="LT"]{
-    background: url("flags/lt.gif") no-repeat left;
+    background: url("flags/lt.png") no-repeat left;
 }
 
 a[data-value="LU"]{
-    background: url("flags/lu.gif") no-repeat left;
+    background: url("flags/lu.png") no-repeat left;
 }
 
 a[data-value="MO"]{
-    background: url("flags/mo.gif") no-repeat left;
+    background: url("flags/mo.png") no-repeat left;
 }
 
 a[data-value="MK"]{
-    background: url("flags/mk.gif") no-repeat left;
+    background: url("flags/mk.png") no-repeat left;
 }
 
 a[data-value="MG"]{
-    background: url("flags/mg.gif") no-repeat left;
+    background: url("flags/mg.png") no-repeat left;
 }
 
 a[data-value="MW"]{
-    background: url("flags/mw.gif") no-repeat left;
+    background: url("flags/mw.png") no-repeat left;
 }
 
 a[data-value="MY"]{
-    background: url("flags/my.gif") no-repeat left;
+    background: url("flags/my.png") no-repeat left;
 }
 
 a[data-value="MV"]{
-    background: url("flags/mv.gif") no-repeat left;
+    background: url("flags/mv.png") no-repeat left;
 }
 
 a[data-value="ML"]{
-    background: url("flags/ml.gif") no-repeat left;
+    background: url("flags/ml.png") no-repeat left;
 }
 
 a[data-value="MT"]{
-    background: url("flags/mt.gif") no-repeat left;
+    background: url("flags/mt.png") no-repeat left;
 }
 
 a[data-value="MH"]{
-    background: url("flags/mh.gif") no-repeat left;
+    background: url("flags/mh.png") no-repeat left;
 }
 
 a[data-value="MQ"]{
-    background: url("flags/mq.gif") no-repeat left;
+    background: url("flags/mq.png") no-repeat left;
 }
 
 a[data-value="MR"]{
-    background: url("flags/mr.gif") no-repeat left;
+    background: url("flags/mr.png") no-repeat left;
 }
 
 a[data-value="MU"]{
-    background: url("flags/mu.gif") no-repeat left;
+    background: url("flags/mu.png") no-repeat left;
 }
 
 a[data-value="YT"]{
-    background: url("flags/yt.gif") no-repeat left;
+    background: url("flags/yt.png") no-repeat left;
 }
 
 a[data-value="MX"]{
-    background: url("flags/mx.gif") no-repeat left;
+    background: url("flags/mx.png") no-repeat left;
 }
 
 a[data-value="FM"]{
-    background: url("flags/fm.gif") no-repeat left;
+    background: url("flags/fm.png") no-repeat left;
 }
 
 a[data-value="MD"]{
-    background: url("flags/md.gif") no-repeat left;
+    background: url("flags/md.png") no-repeat left;
 }
 
 a[data-value="MC"]{
-    background: url("flags/mc.gif") no-repeat left;
+    background: url("flags/mc.png") no-repeat left;
 }
 
 a[data-value="MN"]{
-    background: url("flags/mn.gif") no-repeat left;
+    background: url("flags/mn.png") no-repeat left;
 }
 
 a[data-value="ME"]{
-    background: url("flags/me.gif") no-repeat left;
+    background: url("flags/me.png") no-repeat left;
 }
 
 a[data-value="MS"]{
-    background: url("flags/ms.gif") no-repeat left;
+    background: url("flags/ms.png") no-repeat left;
 }
 
 a[data-value="MA"]{
-    background: url("flags/ma.gif") no-repeat left;
+    background: url("flags/ma.png") no-repeat left;
 }
 
 a[data-value="MZ"]{
-    background: url("flags/mz.gif") no-repeat left;
+    background: url("flags/mz.png") no-repeat left;
 }
 
 a[data-value="MM"]{
-    background: url("flags/mm.gif") no-repeat left;
+    background: url("flags/mm.png") no-repeat left;
 }
 
 a[data-value="NA"]{
-    background: url("flags/na.gif") no-repeat left;
+    background: url("flags/na.png") no-repeat left;
 }
 
 a[data-value="NR"]{
-    background: url("flags/nr.gif") no-repeat left;
+    background: url("flags/nr.png") no-repeat left;
 }
 
 a[data-value="NP"]{
-    background: url("flags/np.gif") no-repeat left;
+    background: url("flags/np.png") no-repeat left;
 }
 
 a[data-value="NL"]{
-    background: url("flags/nl.gif") no-repeat left;
+    background: url("flags/nl.png") no-repeat left;
 }
 
 a[data-value="NC"]{
-    background: url("flags/nc.gif") no-repeat left;
+    background: url("flags/nc.png") no-repeat left;
 }
 
 a[data-value="NZ"]{
-    background: url("flags/nz.gif") no-repeat left;
+    background: url("flags/nz.png") no-repeat left;
 }
 
 a[data-value="NI"]{
-    background: url("flags/ni.gif") no-repeat left;
+    background: url("flags/ni.png") no-repeat left;
 }
 
 a[data-value="NE"]{
-    background: url("flags/ne.gif") no-repeat left;
+    background: url("flags/ne.png") no-repeat left;
 }
 
 a[data-value="NG"]{
-    background: url("flags/ng.gif") no-repeat left;
+    background: url("flags/ng.png") no-repeat left;
 }
 
 a[data-value="NU"]{
-    background: url("flags/nu.gif") no-repeat left;
+    background: url("flags/nu.png") no-repeat left;
 }
 
 a[data-value="NF"]{
-    background: url("flags/nf.gif") no-repeat left;
+    background: url("flags/nf.png") no-repeat left;
 }
 
 a[data-value="MP"]{
-    background: url("flags/mp.gif") no-repeat left;
+    background: url("flags/mp.png") no-repeat left;
 }
 
 a[data-value="NO"]{
-    background: url("flags/no.gif") no-repeat left;
+    background: url("flags/no.png") no-repeat left;
 }
 
 a[data-value="OM"]{
-    background: url("flags/om.gif") no-repeat left;
+    background: url("flags/om.png") no-repeat left;
 }
 
 a[data-value="PK"]{
-    background: url("flags/pk.gif") no-repeat left;
+    background: url("flags/pk.png") no-repeat left;
 }
 
 a[data-value="PW"]{
-    background: url("flags/pw.gif") no-repeat left;
+    background: url("flags/pw.png") no-repeat left;
 }
 
 a[data-value="PS"]{
-    background: url("flags/ps.gif") no-repeat left;
+    background: url("flags/ps.png") no-repeat left;
 }
 
 a[data-value="PA"]{
-    background: url("flags/pa.gif") no-repeat left;
+    background: url("flags/pa.png") no-repeat left;
 }
 
 a[data-value="PG"]{
-    background: url("flags/pg.gif") no-repeat left;
+    background: url("flags/pg.png") no-repeat left;
 }
 
 a[data-value="PY"]{
-    background: url("flags/py.gif") no-repeat left;
+    background: url("flags/py.png") no-repeat left;
 }
 
 a[data-value="PE"]{
-    background: url("flags/pe.gif") no-repeat left;
+    background: url("flags/pe.png") no-repeat left;
 }
 
 a[data-value="PH"]{
-    background: url("flags/ph.gif") no-repeat left;
+    background: url("flags/ph.png") no-repeat left;
 }
 
 a[data-value="PN"]{
-    background: url("flags/pn.gif") no-repeat left;
+    background: url("flags/pn.png") no-repeat left;
 }
 
 a[data-value="PL"]{
-    background: url("flags/pl.gif") no-repeat left;
+    background: url("flags/pl.png") no-repeat left;
 }
 
 a[data-value="PT"]{
-    background: url("flags/pt.gif") no-repeat left;
+    background: url("flags/pt.png") no-repeat left;
 }
 
 a[data-value="PR"]{
-    background: url("flags/pr.gif") no-repeat left;
+    background: url("flags/pr.png") no-repeat left;
 }
 
 a[data-value="QA"]{
-    background: url("flags/qa.gif") no-repeat left;
+    background: url("flags/qa.png") no-repeat left;
 }
 
 a[data-value="RE"]{
-    background: url("flags/re.gif") no-repeat left;
+    background: url("flags/re.png") no-repeat left;
 }
 
 a[data-value="RO"]{
-    background: url("flags/ro.gif") no-repeat left;
+    background: url("flags/ro.png") no-repeat left;
 }
 
 a[data-value="RU"]{
-    background: url("flags/ru.gif") no-repeat left;
+    background: url("flags/ru.png") no-repeat left;
 }
 
 a[data-value="RW"]{
-    background: url("flags/rw.gif") no-repeat left;
+    background: url("flags/rw.png") no-repeat left;
 }
 
 a[data-value="BL"]{
-    background: url("flags/bl.gif") no-repeat left;
+    background: url("flags/bl.png") no-repeat left;
 }
 
 a[data-value="SH"]{
-    background: url("flags/sh.gif") no-repeat left;
+    background: url("flags/sh.png") no-repeat left;
 }
 
 a[data-value="KN"]{
-    background: url("flags/kn.gif") no-repeat left;
+    background: url("flags/kn.png") no-repeat left;
 }
 
 a[data-value="LC"]{
-    background: url("flags/lc.gif") no-repeat left;
+    background: url("flags/lc.png") no-repeat left;
 }
 
 a[data-value="MF"]{
-    background: url("flags/mf.gif") no-repeat left;
+    background: url("flags/mf.png") no-repeat left;
 }
 
 a[data-value="PM"]{
-    background: url("flags/pm.gif") no-repeat left;
+    background: url("flags/pm.png") no-repeat left;
 }
 
 a[data-value="VC"]{
-    background: url("flags/vc.gif") no-repeat left;
+    background: url("flags/vc.png") no-repeat left;
 }
 
 a[data-value="WS"]{
-    background: url("flags/ws.gif") no-repeat left;
+    background: url("flags/ws.png") no-repeat left;
 }
 
 a[data-value="SM"]{
-    background: url("flags/sm.gif") no-repeat left;
+    background: url("flags/sm.png") no-repeat left;
 }
 
 a[data-value="ST"]{
-    background: url("flags/st.gif") no-repeat left;
+    background: url("flags/st.png") no-repeat left;
 }
 
 a[data-value="SA"]{
-    background: url("flags/sa.gif") no-repeat left;
+    background: url("flags/sa.png") no-repeat left;
 }
 
 a[data-value="SN"]{
-    background: url("flags/sn.gif") no-repeat left;
+    background: url("flags/sn.png") no-repeat left;
 }
 
 a[data-value="RS"]{
-    background: url("flags/rs.gif") no-repeat left;
+    background: url("flags/rs.png") no-repeat left;
 }
 
 a[data-value="SC"]{
-    background: url("flags/sc.gif") no-repeat left;
+    background: url("flags/sc.png") no-repeat left;
 }
 
 a[data-value="SL"]{
-    background: url("flags/sl.gif") no-repeat left;
+    background: url("flags/sl.png") no-repeat left;
 }
 
 a[data-value="SG"]{
-    background: url("flags/sg.gif") no-repeat left;
+    background: url("flags/sg.png") no-repeat left;
 }
 
 a[data-value="SX"]{
-    background: url("flags/sx.gif") no-repeat left;
+    background: url("flags/sx.png") no-repeat left;
 }
 
 a[data-value="SK"]{
-    background: url("flags/sk.gif") no-repeat left;
+    background: url("flags/sk.png") no-repeat left;
 }
 
 a[data-value="SI"]{
-    background: url("flags/si.gif") no-repeat left;
+    background: url("flags/si.png") no-repeat left;
 }
 
 a[data-value="SB"]{
-    background: url("flags/sb.gif") no-repeat left;
+    background: url("flags/sb.png") no-repeat left;
 }
 
 a[data-value="SO"]{
-    background: url("flags/so.gif") no-repeat left;
+    background: url("flags/so.png") no-repeat left;
 }
 
 a[data-value="ZA"]{
-    background: url("flags/za.gif") no-repeat left;
+    background: url("flags/za.png") no-repeat left;
 }
 
 a[data-value="GS"]{
-    background: url("flags/gs.gif") no-repeat left;
+    background: url("flags/gs.png") no-repeat left;
 }
 
 a[data-value="SS"]{
-    background: url("flags/ss.gif") no-repeat left;
+    background: url("flags/ss.png") no-repeat left;
 }
 
 a[data-value="ES"]{
-    background: url("flags/es.gif") no-repeat left;
+    background: url("flags/es.png") no-repeat left;
 }
 
 a[data-value="LK"]{
-    background: url("flags/lk.gif") no-repeat left;
+    background: url("flags/lk.png") no-repeat left;
 }
 
 a[data-value="SD"]{
-    background: url("flags/sd.gif") no-repeat left;
+    background: url("flags/sd.png") no-repeat left;
 }
 
 a[data-value="SR"]{
-    background: url("flags/sr.gif") no-repeat left;
+    background: url("flags/sr.png") no-repeat left;
 }
 
 a[data-value="SJ"]{
-    background: url("flags/sj.gif") no-repeat left;
+    background: url("flags/sj.png") no-repeat left;
 }
 
 a[data-value="SZ"]{
-    background: url("flags/sz.gif") no-repeat left;
+    background: url("flags/sz.png") no-repeat left;
 }
 
 a[data-value="SE"]{
-    background: url("flags/se.gif") no-repeat left;
+    background: url("flags/se.png") no-repeat left;
 }
 
 a[data-value="CH"]{
-    background: url("flags/ch.gif") no-repeat left;
+    background: url("flags/ch.png") no-repeat left;
 }
 
 a[data-value="SY"]{
-    background: url("flags/sy.gif") no-repeat left;
+    background: url("flags/sy.png") no-repeat left;
 }
 
 a[data-value="TW"]{
-    background: url("flags/tw.gif") no-repeat left;
+    background: url("flags/tw.png") no-repeat left;
 }
 
 a[data-value="TJ"]{
-    background: url("flags/tj.gif") no-repeat left;
+    background: url("flags/tj.png") no-repeat left;
 }
 
 a[data-value="TZ"]{
-    background: url("flags/tz.gif") no-repeat left;
+    background: url("flags/tz.png") no-repeat left;
 }
 
 a[data-value="TH"]{
-    background: url("flags/th.gif") no-repeat left;
+    background: url("flags/th.png") no-repeat left;
 }
 
 a[data-value="TL"]{
-    background: url("flags/tl.gif") no-repeat left;
+    background: url("flags/tl.png") no-repeat left;
 }
 
 a[data-value="TG"]{
-    background: url("flags/tg.gif") no-repeat left;
+    background: url("flags/tg.png") no-repeat left;
 }
 
 a[data-value="TK"]{
-    background: url("flags/tk.gif") no-repeat left;
+    background: url("flags/tk.png") no-repeat left;
 }
 
 a[data-value="TO"]{
-    background: url("flags/to.gif") no-repeat left;
+    background: url("flags/to.png") no-repeat left;
 }
 
 a[data-value="TT"]{
-    background: url("flags/tt.gif") no-repeat left;
+    background: url("flags/tt.png") no-repeat left;
 }
 
 a[data-value="TN"]{
-    background: url("flags/tn.gif") no-repeat left;
+    background: url("flags/tn.png") no-repeat left;
 }
 
 a[data-value="TR"]{
-    background: url("flags/tr.gif") no-repeat left;
+    background: url("flags/tr.png") no-repeat left;
 }
 
 a[data-value="TM"]{
-    background: url("flags/tm.gif") no-repeat left;
+    background: url("flags/tm.png") no-repeat left;
 }
 
 a[data-value="TC"]{
-    background: url("flags/tc.gif") no-repeat left;
+    background: url("flags/tc.png") no-repeat left;
 }
 
 a[data-value="TV"]{
-    background: url("flags/tv.gif") no-repeat left;
+    background: url("flags/tv.png") no-repeat left;
 }
 
 a[data-value="UG"]{
-    background: url("flags/ug.gif") no-repeat left;
+    background: url("flags/ug.png") no-repeat left;
 }
 
 a[data-value="UA"]{
-    background: url("flags/ua.gif") no-repeat left;
+    background: url("flags/ua.png") no-repeat left;
 }
 
 a[data-value="AE"]{
-    background: url("flags/ae.gif") no-repeat left;
+    background: url("flags/ae.png") no-repeat left;
 }
 
 a[data-value="GB"]{
-    background: url("flags/gb.gif") no-repeat left;
+    background: url("flags/gb.png") no-repeat left;
 }
 
 a[data-value="US"]{
-    background: url("flags/us.gif") no-repeat left;
+    background: url("flags/us.png") no-repeat left;
 }
 
 a[data-value="UM"]{
-    background: url("flags/um.gif") no-repeat left;
+    background: url("flags/um.png") no-repeat left;
 }
 
 a[data-value="UY"]{
-    background: url("flags/uy.gif") no-repeat left;
+    background: url("flags/uy.png") no-repeat left;
 }
 
 a[data-value="UZ"]{
-    background: url("flags/uz.gif") no-repeat left;
+    background: url("flags/uz.png") no-repeat left;
 }
 
 a[data-value="VU"]{
-    background: url("flags/vu.gif") no-repeat left;
+    background: url("flags/vu.png") no-repeat left;
 }
 
 a[data-value="VE"]{
-    background: url("flags/ve.gif") no-repeat left;
+    background: url("flags/ve.png") no-repeat left;
 }
 
 a[data-value="VN"]{
-    background: url("flags/vn.gif") no-repeat left;
+    background: url("flags/vn.png") no-repeat left;
 }
 
 a[data-value="VG"]{
-    background: url("flags/vg.gif") no-repeat left;
+    background: url("flags/vg.png") no-repeat left;
 }
 
 a[data-value="VI"]{
-    background: url("flags/vi.gif") no-repeat left;
+    background: url("flags/vi.png") no-repeat left;
 }
 
 a[data-value="WF"]{
-    background: url("flags/wf.gif") no-repeat left;
+    background: url("flags/wf.png") no-repeat left;
 }
 
 a[data-value="EH"]{
-    background: url("flags/eh.gif") no-repeat left;
+    background: url("flags/eh.png") no-repeat left;
 }
 
 a[data-value="YE"]{
-    background: url("flags/ye.gif") no-repeat left;
+    background: url("flags/ye.png") no-repeat left;
 }
 
 a[data-value="ZM"]{
-    background: url("flags/zm.gif") no-repeat left;
+    background: url("flags/zm.png") no-repeat left;
 }
 
 a[data-value="ZW"]{
-    background: url("flags/zw.gif") no-repeat left;
+    background: url("flags/zw.png") no-repeat left;
 }
