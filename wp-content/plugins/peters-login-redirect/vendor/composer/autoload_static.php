@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9f015b48a8bd360c3134cf1d5a23f83d
+class ComposerStaticInitadb733f385777bf0194affed92734036
 {
     public static $files = array (
         '7c119350ad5d791b1ae2d87a60e07ace' => __DIR__ . '/../..' . '/src/core/src/MoAdminNotice.php',
@@ -156,9 +156,9 @@ class ComposerStaticInit9f015b48a8bd360c3134cf1d5a23f83d
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9f015b48a8bd360c3134cf1d5a23f83d::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9f015b48a8bd360c3134cf1d5a23f83d::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit9f015b48a8bd360c3134cf1d5a23f83d::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitadb733f385777bf0194affed92734036::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitadb733f385777bf0194affed92734036::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitadb733f385777bf0194affed92734036::$classMap;
 
         }, null, ClassLoader::class);
     }

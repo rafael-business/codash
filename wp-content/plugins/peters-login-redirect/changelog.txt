@@ -1,5 +1,8 @@
 == Changelog ==
 
+= 3.0.0.7 =
+* Fix site and website url placeholder bug in multisite.
+
 = 3.0.0.6 =
 * Compatibility with WP 5.9.
 * Pro: Added [LearnDash](https://loginwp.com/?utm_source=wprepo&utm_medium=changelog&utm_campaign=3006#pro-conditions) Enrolled Course and User Group redirect conditions.

@@ -22,3 +22,201 @@ Template: astra
 .block {
     display: block !important;
 }
+
+.marquee .helicopter {
+    margin-right: 10px;
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    width: 32px;
+    height: 32px;
+    position: relative;
+    animation-name: helicopter;
+    animation-duration: 4s;
+    animation-direction: reverse;
+    animation-iteration-count: 10;
+    left:0px; top:0px;
+}
+
+@keyframes helicopter {
+    0%   {left:0px; top:0px;transform: rotate(0deg) scaleX(-1); transform-origin: bottom left;}
+    25%  {left:0px; top:-2px;transform: rotate(-10deg) scaleX(-1); transform-origin: bottom left;}
+    50%  {left:0px; top:0px;transform: rotate(-15deg) scaleX(-1); transform-origin: bottom left;}
+    75%  {left:0px; top:2px;transform: rotate(-10deg) scaleX(-1); transform-origin: bottom left;}
+    100% {left:0px; top:0px;transform: rotate(0deg) scaleX(-1); transform-origin: bottom left;}
+}
+
+.woocommerce-product-search input[type=search] {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-right: none;
+}
+
+.widget_product_search button {
+    border-radius: 0;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.ast-custom-button {
+    position: relative;
+}
+
+.ast-custom-button:before {
+    content: url('./assets/img/atend.svg');
+    position: absolute;
+    left: 13px;
+    top: 10px;
+}
+
+.home #content {
+    background-image: url(./assets/img/bg_hero.svg);
+    background-image: url(./assets/img/bg_hero.svg), linear-gradient(135deg,rgb(32,32,32) 36%,rgb(67,0,130) 100%);
+    background-repeat: no-repeat;
+    background-position-x: right;
+}
+
+.home .hero {
+    display: flex;
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.home .hero ul {
+    list-style-type: none;
+    flex: 1;
+}
+
+.home .hero ul li input[type="checkbox"] {
+    margin-right: 12px;
+}
+
+.home .hero .briefing {
+    flex: 1;
+    margin-top: -72px;
+}
+
+.home .hero .briefing form > p {
+    display: flex;
+    flex-flow: wrap;
+    gap: 12px;
+}
+
+.home .hero .briefing form > p input[type="submit"] {
+    border-radius: 6px;
+    background-color: #e14d43;
+}
+
+.home .hero .briefing form > p .wpcf7-form-control-wrap {
+    width: 100%;
+    display: block;
+    flex: 1 0 40%;
+}
+
+.home .hero .briefing form > p .wpcf7-form-control-wrap.solicitacao {
+    flex: 1 0 100%;
+}
+
+.home .hero .briefing h4 {
+    color: white;
+    margin-bottom: 12px;
+}
+
+.home .hero .briefing .newsletter {
+    flex: 1 0 60% !important;
+}
+
+.home .hero .briefing form > p .wpcf7-spinner {
+    background-color: #e14d43;
+    opacity: 1;
+}
+
+.home .hero .briefing form .wpcf7-response-output {
+    margin: 0;
+    position: absolute;
+    width: calc( 100% - 90px );
+    right: 0;
+    bottom: 0;
+    margin-bottom: -14px;
+    font-size: 15px;
+}
+
+.home .hero .briefing form .wpcf7-not-valid-tip {
+    display: none;
+}
+
+.home .hero .briefing .newsletter .wpcf7-list-item {
+    margin: 0;
+}
+
+.home h1.entry-title {
+    font-weight: bolder;
+    font-size: 3rem;
+    padding-left: 12px;
+    color: white;
+    max-width: 450px;
+}
+
+.home .clientes {
+    height: 64px;
+}
+
+.home h2:not(.call-col h2) {
+    margin: 32px 0 48px;
+}
+
+.woocommerce span.onsale {
+    color: white;
+    background-color: #e14d43;
+    font-size: 17px;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 8px 16px;
+    line-height: 21px;
+    min-height: fit-content;
+    border: 2px solid white;
+}
+
+.woocommerce span.onsale::after {
+    content: '💥';
+    margin-left: 4px;
+}
+
+.astra-shop-summary-wrap {
+    text-align: center;
+}
+
+.woocommerce ul.products li.product .woocommerce-loop-product__title, 
+.woocommerce-page ul.products li.product .woocommerce-loop-product__title {
+    font-size: 1.5em;
+}
+
+.woocommerce ul.products li.product .button, .woocommerce-page ul.products li.product .button {
+    border-radius: 6px;
+    background-color: #00a329;
+}
+
+.ast-header-account-type-icon, 
+.ast-header-account-type-text {
+    border: 2px solid;
+    border-radius: 6px;
+    padding: 3.5px 12px;
+    transition: all ease .25s;
+}
+
+.ast-header-account-type-text {
+    padding: 9px 18px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.ast-header-account-type-icon:hover {
+    background-color: rgba(0,0,0,.1);
+}
+
+.ast-header-account-type-icon span::after {
+    content: 'Login';
+    font-weight: bold;
+    margin-left: 10px;
+    font-size: 17px;
+}

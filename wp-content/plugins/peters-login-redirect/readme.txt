@@ -5,7 +5,7 @@ Tags: login, logout, redirect, login form, user registration, admin, administrat
 Requires at least: 4.0
 Requires PHP: 5.6
 Tested up to: 5.9
-Stable tag: 3.0.0.6
+Stable tag: 3.0.0.7
 License: GPL-2.0+
 
 Redirect users to different locations after they log in, log out and register based on different conditions.
@@ -73,6 +73,9 @@ Please visit the [plugin page](https://loginwp.com/?utm_source=wprepo&utm_medium
 Login redirects not working? This plugin uses WordPress's standard login_redirect hook. The usual cause of problems is that another plugin is using the hook first, or there is a custom login form that isn't even running through the standard WordPress login functions.
 
 == Changelog ==
+
+= 3.0.0.7 =
+* Fix site and website url placeholder bug in multisite.
 
 = 3.0.0.6 =
 * Compatibility with WP 5.9.

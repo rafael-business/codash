@@ -23,22 +23,27 @@ if ( ! defined( 'ABSPATH' ) ) {
     <?php
     if ( is_front_page() ) : ?>
     
+    <!--
     <div id="sobre" class="site-content">
         <div class="ast-container">
-            slide clientes
+            <div>_clientes</div>
+            <div class="clientes">
+                <?php echo do_shortcode( '[wp_swiper id=184]' ); ?>
+            </div>
         </div>
     </div>
+    -->
 
     <div id="produtos" class="site-content">
         <div class="ast-container block">
-            <h2>Produtos à venda</h2>
-            <div><?php echo do_shortcode( '[products limit="4" columns="4" visibility="featured"]' ); ?></div>
+            <h2>Temas & Plugins p/ WordPress</h2>
+            <div><?php echo do_shortcode( '[products limit="6" columns="3" visibility="featured"]' ); ?></div>
         </div>
     </div>
 
     <div id="servicos" class="site-content">
         <div class="ast-container">
-            <h2>Plugins personalizados para o seu Negócio</h2>
+            <h2>Personalizamos para o seu Negócio</h2>
         </div>
     </div>
     
@@ -48,11 +53,13 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     </div>
 
+    <!--
     <div id="contato" class="site-content">
         <div class="ast-container">
             <h2>Fale com o Responsável</h2>
         </div>
     </div>
+    -->
 
     <?php
     endif; ?>

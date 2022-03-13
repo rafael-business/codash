@@ -1,15 +1,15 @@
-# Copyright (C) 2021 LoginWP (Formerly Peter's Login Redirect)
+# Copyright (C) 2022 LoginWP (Formerly Peter's Login Redirect)
 # This file is distributed under the same license as the LoginWP (Formerly Peter's Login Redirect) package.
 msgid ""
 msgstr ""
-"Project-Id-Version: LoginWP (Formerly Peter's Login Redirect) 3.0.0.6\n"
+"Project-Id-Version: LoginWP (Formerly Peter's Login Redirect) 3.0.0.7\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/peters-login-"
 "redirect\n"
-"POT-Creation-Date: 2021-11-19 19:56:28+00:00\n"
+"POT-Creation-Date: 2022-01-19 15:37:55+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2021-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2022-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
@@ -671,9 +671,9 @@ msgstr ""
 msgid "LoginWP (Formerly Peter's Login Redirect)"
 msgstr ""
 
-#. #-#-#-#-#  peters-login-redirect.pot (LoginWP (Formerly Peter's Login Redirect) 3.0.0.6)  #-#-#-#-#
+#. #-#-#-#-#  peters-login-redirect.pot (LoginWP (Formerly Peter's Login Redirect) 3.0.0.7)  #-#-#-#-#
 #. Plugin URI of the plugin/theme
-#. #-#-#-#-#  peters-login-redirect.pot (LoginWP (Formerly Peter's Login Redirect) 3.0.0.6)  #-#-#-#-#
+#. #-#-#-#-#  peters-login-redirect.pot (LoginWP (Formerly Peter's Login Redirect) 3.0.0.7)  #-#-#-#-#
 #. Author URI of the plugin/theme
 msgid "https://loginwp.com"
 msgstr ""

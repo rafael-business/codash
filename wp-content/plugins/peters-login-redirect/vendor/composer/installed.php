@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'dfe5fe8efde9684f7e6c4bf3cc443e8300251289',
+        'reference' => '51952dcfa180e10dc71336f0078ae602da311e33',
         'name' => '__root__',
         'dev' => false,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'dfe5fe8efde9684f7e6c4bf3cc443e8300251289',
+            'reference' => '51952dcfa180e10dc71336f0078ae602da311e33',
             'dev_requirement' => false,
         ),
         'collizo4sky/persist-admin-notices-dismissal' => array(
@@ -38,12 +38,12 @@
             'dev_requirement' => false,
         ),
         'loginwp/core' => array(
-            'pretty_version' => '0.1.0-alpha.1637351034',
-            'version' => '0.1.0.0-alpha1637351034',
+            'pretty_version' => '0.1.0-alpha.1642606448',
+            'version' => '0.1.0.0-alpha1642606448',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../src/core',
             'aliases' => array(),
-            'reference' => 'be39d47ffbb67b1357e9582cc3d1ad9ecad1e283',
+            'reference' => '988cc2f949fdea3ac99dcd2f5374b3a05254d456',
             'dev_requirement' => false,
         ),
         'roundcube/plugin-installer' => array(
